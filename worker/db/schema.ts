@@ -102,3 +102,10 @@ export const receipts = sqliteTable(
         index('receipts_branch_idx').on(t.branchId, t.createdAt),
     ],
 );
+
+// Running receipt counts kept by SQL triggers (see migration 0006): user_id 0 = everyone.
+export const ALL_USERS = 0;
+export const receiptTotals = sqliteTable('receipt_totals', {
+    userId: integer('user_id').primaryKey(),
+    total: integer('total').notNull().default(0),
+});

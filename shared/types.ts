@@ -64,6 +64,8 @@ export interface Page<T> {
     total: number;
     page: number;
     pageSize: number;
+    // Set when a text search was limited to the default recent window (YYYY-MM-DD).
+    searchedFrom?: string | null;
 }
 
 export interface DashboardStats {

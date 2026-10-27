@@ -19,6 +19,9 @@ export const initials = (name: string) =>
         .map((w) => w[0]?.toUpperCase() ?? '')
         .join('');
 
+export const formatDate = (isoDate: string) =>
+    new Date(`${isoDate}T00:00:00`).toLocaleDateString('en-IN', { dateStyle: 'medium' });
+
 export const formatDateTime = (ms: number) =>
     new Date(ms).toLocaleString('en-IN', {
         dateStyle: 'medium',

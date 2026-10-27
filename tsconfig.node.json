@@ -13,6 +13,7 @@
         "tests",
         "shared",
         "worker/lib/time.ts",
+        "worker/lib/search.ts",
         "src/lib/history.ts",
         "src/components/designer/elements.ts"
     ]

@@ -132,3 +132,5 @@ export const idsSchema = z.object({
 
 export const PAGE_SIZE = 25;
 export const BULK_PRINT_LIMIT = 100;
+// Name/phone search looks this far back unless a From date is chosen (keeps D1 reads bounded).
+export const SEARCH_WINDOW_DAYS = 90;

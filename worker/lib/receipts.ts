@@ -4,11 +4,21 @@ import { paperKey } from '../../shared/layout';
 import { can } from '../../shared/permissions';
 import type { Me, Receipt, ReceiptListItem } from '../../shared/types';
 import type { Db } from '../db';
-import { receipts, templates, users } from '../db/schema';
+import { ALL_USERS, receipts, receiptTotals, templates, users } from '../db/schema';
 
 // Users only ever see their own receipts; admins see everything.
 export const scopeFor = (me: Me): SQL | undefined =>
     can(me.role, 'receipts.viewAll') ? undefined : eq(receipts.createdBy, me.id);
+
+// All-time count from the trigger-maintained totals table: one row read instead of every receipt.
+export async function receiptTotal(db: Db, me: Me) {
+    const userId = can(me.role, 'receipts.viewAll') ? ALL_USERS : me.id;
+    const [row] = await db
+        .select({ total: receiptTotals.total })
+        .from(receiptTotals)
+        .where(eq(receiptTotals.userId, userId));
+    return row?.total ?? 0;
+}
 
 // List query skips the large layout snapshot and reads only paper size from it.
 export const listQuery = (db: Db) =>

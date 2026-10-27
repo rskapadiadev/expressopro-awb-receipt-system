@@ -2,14 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
 import { BULK_PRINT_LIMIT } from '@shared/schemas';
 import type { ReceiptListItem } from '@shared/types';
-import { ChevronLeft, ChevronRight, Plus, Printer, Search, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Info, Plus, Printer, Search, X } from 'lucide-react';
 import { useState } from 'react';
 import { ReceiptTable } from '@/components/receipt/ReceiptTable';
 import { Button } from '@/components/ui/button';
 import { Card, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/form';
 import { receiptsQuery } from '@/lib/queries';
-import { cn } from '@/lib/utils';
+import { cn, formatDate } from '@/lib/utils';
 
 const route = getRouteApi('/authed/shell/receipts');
 
@@ -111,6 +111,13 @@ export function ReceiptsPage() {
                         )}
                     </div>
                 </div>
+                {data?.searchedFrom && (
+                    <p className="flex animate-fade-up items-center gap-2 border-b bg-muted/40 px-4 py-2 text-xs text-muted-foreground">
+                        <Info className="size-3.5 shrink-0" />
+                        Name search covers receipts since {formatDate(data.searchedFrom)}. Choose a
+                        From date to search older ones; AWB numbers are always searched in full.
+                    </p>
+                )}
                 <div className={cn('transition-opacity', isFetching && data && 'opacity-60')}>
                     <ReceiptTable
                         rows={data?.items ?? []}

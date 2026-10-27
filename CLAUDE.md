@@ -85,4 +85,9 @@ Key concepts:
 - **Animations must not hold a `transform`.** `animate-fade-up` uses `backwards` fill mode. A transform left on an ancestor turns `position: fixed` children (the bulk-print bar) into children positioned against that ancestor.
 - **JsBarcode** writes sizes like `"268px"`. Parse them to numbers before building an SVG `viewBox`.
 - **Mismatched local runtimes.** Running `wrangler d1 execute` against local state created by a newer Vite-plugin runtime crashes. Keep `wrangler` up to date and use Node 22.
+- **D1 reads are the real free-tier limit (5M rows/day). Never write a query that reads every receipt.**
+    - All-time counts come from `receipt_totals`, kept up to date by SQL triggers in migration `0006`, so every insert and delete path updates it automatically.
+    - Dashboard figures use one indexed date-range query.
+    - Search goes through `searchPlan` ([worker/lib/search.ts](worker/lib/search.ts)): AWB-like input uses the unique index, and text search is limited to `SEARCH_WINDOW_DAYS` unless a From date is set.
+    - Check new queries with `EXPLAIN QUERY PLAN`. You want `SEARCH … USING INDEX`, not `SCAN receipts`.
 - **Data scope.** API routes must always apply `scopeFor(me)`, which limits `user` to their own receipts. UI hiding isn't enough.

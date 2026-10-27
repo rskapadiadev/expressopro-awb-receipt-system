@@ -14,20 +14,32 @@ import { branches, fieldDefinitions, receipts } from '../db/schema';
 import type { AppEnv } from '../env';
 import { withUniqueAwb } from '../lib/awb';
 import { body, fail, paramId, parse } from '../lib/http';
-import { detailQuery, listQuery, scopeFor, toListItem } from '../lib/receipts';
+import { detailQuery, listQuery, receiptTotal, scopeFor, toListItem } from '../lib/receipts';
+import { type SearchPlan, searchPlan } from '../lib/search';
 import { fieldsForTemplate, getUsableTemplate } from '../lib/templates';
-import { istDayEnd, istDayStart } from '../lib/time';
+import { istDayEnd, istDayStart, istToday } from '../lib/time';
 import { requirePermission } from '../middleware/auth';
 
-// Matches the AWB number or any field the Super Admin marked as searchable.
-const searchCondition = (q: string) => {
-    const like = `%${q}%`;
+// Only the plan's matching rows are read: an AWB index range, or text matches within a date window.
+async function searchCondition(db: Db, plan: SearchPlan) {
+    if (plan.mode === 'awb') {
+        return sql`${receipts.awbNumber} >= ${plan.prefix} AND ${receipts.awbNumber} < ${`${plan.prefix}~`}`;
+    }
+    if (plan.mode === 'none') {
+        return undefined;
+    }
+    // Searchable keys are loaded once here rather than re-read for every receipt row.
+    const keys = await db
+        .select({ key: fieldDefinitions.key })
+        .from(fieldDefinitions)
+        .where(eq(fieldDefinitions.searchable, true));
     return or(
-        sql`${receipts.awbNumber} LIKE ${like}`,
-        sql`EXISTS (SELECT 1 FROM ${fieldDefinitions} WHERE ${fieldDefinitions.searchable} = 1
-            AND json_extract(${receipts.data}, '$.' || ${fieldDefinitions.key}) LIKE ${like})`,
+        sql`${receipts.awbNumber} LIKE ${plan.like}`,
+        ...keys.map(
+            ({ key }) => sql`json_extract(${receipts.data}, ${`$.${key}`}) LIKE ${plan.like}`,
+        ),
     );
-};
+}
 
 // Users book under their own branch; admins without one choose a branch per receipt.
 async function bookingBranch(db: Db, branchId: number | null | undefined) {
@@ -50,15 +62,23 @@ export const receiptRoutes = new Hono<AppEnv>()
     .get('/', async (c) => {
         const { db, me } = c.var;
         const query = parse(receiptQuerySchema, c.req.query());
+        const plan = searchPlan(query.q, query.from, istToday());
         const where = and(
             scopeFor(me),
-            query.from ? gte(receipts.createdAt, istDayStart(query.from)) : undefined,
+            plan.from ? gte(receipts.createdAt, istDayStart(plan.from)) : undefined,
             query.to ? lt(receipts.createdAt, istDayEnd(query.to)) : undefined,
-            query.q ? searchCondition(query.q) : undefined,
+            await searchCondition(db, plan),
         );
+        const unfiltered = plan.mode === 'none' && !plan.from && !query.to;
         // Promise.all, not db.batch: Drizzle's D1 batch mis-maps joined columns that share a name.
-        const [[total], rows] = await Promise.all([
-            db.select({ n: count() }).from(receipts).where(where),
+        const [total, rows] = await Promise.all([
+            unfiltered
+                ? receiptTotal(db, me)
+                : db
+                      .select({ n: count() })
+                      .from(receipts)
+                      .where(where)
+                      .then(([row]) => row?.n ?? 0),
             listQuery(db)
                 .where(where)
                 .orderBy(desc(receipts.createdAt), desc(receipts.id))
@@ -67,9 +87,10 @@ export const receiptRoutes = new Hono<AppEnv>()
         ]);
         const result: Page<ReceiptListItem> = {
             items: rows.map(toListItem),
-            total: total?.n ?? 0,
+            total,
             page: query.page,
             pageSize: PAGE_SIZE,
+            searchedFrom: plan.mode === 'text' && plan.windowed ? plan.from : null,
         };
         return c.json(result);
     })

@@ -1,4 +1,4 @@
-import { and, eq, gt } from 'drizzle-orm';
+import { and, eq, gt, ne } from 'drizzle-orm';
 import type { Context } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { randomToken, sha256Hex } from '../../shared/password';
@@ -49,6 +49,13 @@ export async function readSession(c: Context, db: Db): Promise<Me | null> {
         )
         .limit(1);
     return row ?? null;
+}
+
+// After a password change, sign out every other browser/device but keep this one.
+export async function destroyOtherSessions(c: Context, db: Db, userId: number) {
+    const token = getCookie(c, COOKIE);
+    const current = token ? await sha256Hex(token) : '';
+    await db.delete(sessions).where(and(eq(sessions.userId, userId), ne(sessions.id, current)));
 }
 
 export async function destroySession(c: Context, db: Db) {

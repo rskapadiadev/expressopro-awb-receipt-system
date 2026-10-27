@@ -17,6 +17,22 @@ const username = z
     .regex(/^[a-z0-9._-]{3,40}$/, 'Use 3–40 letters, numbers, dot, dash or underscore');
 const password = z.string().min(8, 'At least 8 characters').max(200);
 
+export const changePasswordSchema = z
+    .object({
+        currentPassword: z.string().min(1, 'Enter your current password').max(200),
+        newPassword: password,
+        confirmPassword: z.string(),
+    })
+    .refine((p) => p.newPassword === p.confirmPassword, {
+        message: 'Passwords do not match',
+        path: ['confirmPassword'],
+    })
+    .refine((p) => p.newPassword !== p.currentPassword, {
+        message: 'Choose a different password from your current one',
+        path: ['newPassword'],
+    });
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
 // The AWB prefix: every receipt number starts with its branch code.
 export const BRANCH_CODE_LENGTH = 4;
 export const AWB_RANDOM_DIGITS = 7;

@@ -1,11 +1,11 @@
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
-import { verifyPassword } from '../../shared/password';
-import { loginSchema } from '../../shared/schemas';
+import { hashPassword, verifyPassword } from '../../shared/password';
+import { changePasswordSchema, loginSchema } from '../../shared/schemas';
 import { users } from '../db/schema';
 import type { AppEnv } from '../env';
 import { body, fail } from '../lib/http';
-import { createSession, destroySession } from '../lib/session';
+import { createSession, destroyOtherSessions, destroySession } from '../lib/session';
 import { requireAuth } from '../middleware/auth';
 
 const MAX_ATTEMPTS = 5;
@@ -58,4 +58,22 @@ export const authRoutes = new Hono<AppEnv>()
         await destroySession(c, c.var.db);
         return c.json({ ok: true });
     })
-    .get('/me', requireAuth, (c) => c.json(c.var.me));
+    .get('/me', requireAuth, (c) => c.json(c.var.me))
+    .post('/password', requireAuth, async (c) => {
+        const { currentPassword, newPassword } = await body(c, changePasswordSchema);
+        const { db, me } = c.var;
+        const [user] = await db
+            .select({ passwordHash: users.passwordHash })
+            .from(users)
+            .where(eq(users.id, me.id))
+            .limit(1);
+        if (!user || !(await verifyPassword(currentPassword, user.passwordHash))) {
+            fail(400, 'Current password is incorrect');
+        }
+        await db
+            .update(users)
+            .set({ passwordHash: await hashPassword(newPassword) })
+            .where(eq(users.id, me.id));
+        await destroyOtherSessions(c, db, me.id);
+        return c.json({ ok: true });
+    });

@@ -5,6 +5,7 @@ import {
     Building2,
     ChevronsUpDown,
     FileText,
+    KeyRound,
     LayoutDashboard,
     LayoutTemplate,
     ListChecks,
@@ -16,6 +17,8 @@ import {
     Sun,
     Users,
 } from 'lucide-react';
+import { useState } from 'react';
+import { ChangePasswordDialog } from '@/components/ChangePasswordDialog';
 import { type Theme, useTheme } from '@/components/theme/theme';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -188,6 +191,7 @@ function UserMenu() {
     const { isMobile } = useSidebar();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
+    const [passwordOpen, setPasswordOpen] = useState(false);
 
     const logout = async () => {
         await api('/auth/logout', 'POST');
@@ -198,7 +202,8 @@ function UserMenu() {
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <DropdownMenu>
+                {/* Non-modal so the password dialog can take focus cleanly after the menu closes. */}
+                <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
@@ -246,6 +251,13 @@ function UserMenu() {
                         </DropdownMenuRadioGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
+                            onSelect={() => {
+                                setPasswordOpen(true);
+                            }}
+                        >
+                            <KeyRound /> Change password
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                             variant="destructive"
                             onSelect={() => {
                                 void logout();
@@ -255,6 +267,7 @@ function UserMenu() {
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
+                <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
             </SidebarMenuItem>
         </SidebarMenu>
     );

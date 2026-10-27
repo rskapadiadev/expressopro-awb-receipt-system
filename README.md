@@ -8,17 +8,17 @@ AWB receipt system with dynamic fields, a drag-and-drop template designer and bu
 
 ## Roles
 
-| Role        | Who               | Can do                                                                       |
-| ----------- | ----------------- | ---------------------------------------------------------------------------- |
-| Super Admin | Platform owner    | Everything: field library, template designer, template assignment, all users |
-| Admin       | Courier company   | Manage franchise users, see and void all receipts, use all active templates  |
-| User        | Franchise / store | Create and print receipts using assigned templates, see own receipts only    |
+| Role        | Who               | Can do                                                                          |
+| ----------- | ----------------- | ------------------------------------------------------------------------------- |
+| Super Admin | Platform owner    | Everything: field library, template designer, template assignment, all users    |
+| Admin       | Courier company   | Manage franchise users, see and void all receipts, use all active templates     |
+| User        | Franchise / store | Create and print receipts using their branch's templates, see own receipts only |
 
 The permission matrix lives in [shared/permissions.ts](shared/permissions.ts). Both the API and the UI use it.
 
 ## Local setup
 
-Requires Node 20.19 or later.
+Requires Node 22 or later. The repo has an `.nvmrc`, so run `nvm use` in this folder.
 
 ```bash
 npm install
@@ -58,6 +58,17 @@ A pre-commit hook (husky + lint-staged) runs ESLint and Prettier on staged files
 - Write inline parameter types as named interfaces. Prettier collapses inline types, which conflicts with the rule above.
 - Comments are one line, and only where the reason isn't obvious.
 
+## UI
+
+- Built on [shadcn/ui](https://ui.shadcn.com) (the `Sidebar`, dialogs, dropdowns, tooltips and toasts) with Tailwind CSS v4.
+- The font is **Hanken Grotesk**, bundled locally via `@fontsource-variable`, so there are no external font requests.
+- Colours are shadcn theme tokens in [src/index.css](src/index.css), with separate light and dark themes. Users switch theme from the user menu or the header toggle. Receipt paper always stays white so it prints correctly.
+- Files that shadcn generated (`src/components/ui/{sidebar,button,dialog,…}.tsx`, `src/hooks/use-mobile.ts`) are treated as vendored code and are exempt from a few lint rules. Add more shadcn components with `npx shadcn@latest add <name>`.
+- Responsive behaviour:
+    - On phones the sidebar becomes a slide-in drawer.
+    - Tables turn into cards.
+    - The bulk-print bar floats at the bottom of the screen.
+
 ## Deploying to Cloudflare (free)
 
 1. `npx wrangler login`
@@ -79,7 +90,8 @@ The app is then live at `https://expresspro-awb.<account>.workers.dev`.
 
 - **Branches** (`/admin/branches`, Super Admin and Admin):
     - Each branch has a unique 4-character code, which is the prefix of its AWB numbers.
-    - Every franchise user belongs to one branch and always books under it.
+    - Every franchise user belongs to one branch, always books under it, and uses that branch's templates.
+    - The Super Admin assigns templates per branch (with one default) in the branch form, so new users of a branch need no template setup.
     - Admins and the Super Admin can have no branch. They then pick a branch for each receipt.
 - **Field library** (`/admin/fields`): defines each field's key, label, type, required and searchable flags, and dropdown options. A field's key can't change after creation, because saved receipts store their data by key.
 - **Templates** (`/admin/templates`): each template sets the paper size in mm and positions elements on a canvas. The fields placed on a template become its entry form.

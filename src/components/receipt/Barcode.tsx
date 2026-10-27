@@ -16,10 +16,9 @@ export function Barcode({ value }: { value: string }) {
             height: 60,
         });
         // Stretch the generated bars to fill whatever box the template gives them.
-        svg.setAttribute(
-            'viewBox',
-            `0 0 ${svg.getAttribute('width') ?? '0'} ${svg.getAttribute('height') ?? '0'}`,
-        );
+        // JsBarcode writes sizes like "268px"; viewBox only accepts plain numbers.
+        const size = (attr: string) => parseFloat(svg.getAttribute(attr) ?? '0');
+        svg.setAttribute('viewBox', `0 0 ${size('width')} ${size('height')}`);
         svg.setAttribute('width', '100%');
         svg.setAttribute('height', '100%');
     }, [value]);

@@ -32,6 +32,9 @@ export const branchInputSchema = z.object({
     phone: z.string().trim().max(20),
     address: z.string().trim().max(300),
     isActive: z.boolean(),
+    // Templates this branch's users book with; only the Super Admin may change these.
+    templateIds: z.array(id).max(50),
+    defaultTemplateId: id.nullable(),
 });
 export type BranchInput = z.infer<typeof branchInputSchema>;
 
@@ -40,8 +43,6 @@ const userBase = z.object({
     username,
     role: z.enum(ROLES),
     isActive: z.boolean(),
-    templateIds: z.array(id).max(50),
-    defaultTemplateId: id.nullable(),
     branchId: id.nullable(),
 });
 

@@ -128,10 +128,10 @@ export function PrintPage() {
     }, [jobs]);
 
     if (isLoading) {
-        return <p className="p-6 text-sm text-slate-500">Loading…</p>;
+        return <p className="p-6 text-sm text-muted-foreground">Loading…</p>;
     }
     if (error || !job) {
-        return <p className="p-6 text-sm text-red-600">No printable receipts found.</p>;
+        return <p className="p-6 text-sm text-destructive">No printable receipts found.</p>;
     }
 
     const layout = job.receipts[0]?.layout ?? data[0]?.layout;
@@ -147,7 +147,7 @@ export function PrintPage() {
     return (
         <>
             <style>{`@page { size: ${page}; margin: 0; }`}</style>
-            <div className="no-print sticky top-0 z-10 flex flex-wrap items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
+            <div className="no-print sticky top-0 z-10 flex flex-wrap items-center gap-3 border-b bg-background/90 px-4 py-3 backdrop-blur">
                 <Select
                     aria-label="Print as"
                     className="h-9 w-auto"
@@ -166,7 +166,7 @@ export function PrintPage() {
                         </option>
                     ))}
                 </Select>
-                <span className="text-sm text-slate-600">
+                <span className="text-sm text-muted-foreground">
                     {job.receipts.length} receipt{job.receipts.length === 1 ? '' : 's'}
                     {copiesNote} · {job.key}
                     {isSheet &&
@@ -175,14 +175,14 @@ export function PrintPage() {
                 </span>
                 {jobs.length > 1 && (
                     <div className="flex flex-wrap items-center gap-1">
-                        <span className="text-sm text-amber-700">
+                        <span className="text-sm text-warning">
                             {jobs.length} page sizes, print each group:
                         </span>
                         {jobs.map((j) => (
                             <Button
                                 key={j.key}
                                 size="sm"
-                                variant={j.key === job.key ? 'primary' : 'outline'}
+                                variant={j.key === job.key ? 'default' : 'outline'}
                                 onClick={() => {
                                     setActiveKey(j.key);
                                 }}
@@ -202,7 +202,7 @@ export function PrintPage() {
                     <Printer className="size-4" /> Print
                 </Button>
             </div>
-            <div className="flex flex-col items-center gap-4 bg-slate-100 py-4 print:block print:bg-white print:p-0">
+            <div className="bg-grid flex min-h-dvh flex-col items-center gap-6 bg-muted/60 py-8 print:block print:min-h-0 print:bg-white print:p-0">
                 {isSheet && grid
                     ? chunk(items, grid.perSheet).map((sheet, i) => (
                           <div

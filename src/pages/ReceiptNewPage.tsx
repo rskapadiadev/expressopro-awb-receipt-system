@@ -3,16 +3,19 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { buildDataSchema, type ReceiptData } from '@shared/fields';
 import { firstCopy } from '@shared/layout';
-import type { Branch, TemplateWithFields } from '@shared/types';
+import type { Branch, Receipt, TemplateWithFields } from '@shared/types';
+import { Check, LayoutTemplate, Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { FieldInput } from '@/components/fields/FieldInput';
 import { ReceiptRenderer } from '@/components/receipt/ReceiptRenderer';
 import { Button } from '@/components/ui/button';
-import { Card, Empty, PageHeader } from '@/components/ui/card';
+import { Card, CardHeader, Empty, PageHeader } from '@/components/ui/card';
 import { ErrorBanner, FormField, Select } from '@/components/ui/form';
 import { fieldMap, fitZoom } from '@/lib/paper';
+import { toast } from 'sonner';
 import { api, applyServerErrors } from '@/lib/api';
+import { stagger } from '@/lib/utils';
 import { branchesQuery, templateQuery, templatesQuery, useMe } from '@/lib/queries';
 
 export function ReceiptNewPage() {
@@ -34,10 +37,16 @@ export function ReceiptNewPage() {
 
     return (
         <>
-            <PageHeader title="New receipt" />
+            <PageHeader
+                title="New receipt"
+                description="Book a consignment and print its receipt."
+            />
             {available?.items.length === 0 ? (
                 <Card>
-                    <Empty>No templates are assigned to you yet. Ask your administrator.</Empty>
+                    <Empty icon={LayoutTemplate} title="No templates yet">
+                        No receipt templates are assigned to you. Ask your administrator to assign
+                        one.
+                    </Empty>
                 </Card>
             ) : (
                 <>
@@ -113,13 +122,14 @@ function ReceiptForm({ template, fields, branch }: ReceiptFormProps) {
 
     const onSubmit = handleSubmit(async (data) => {
         try {
-            const created = await api<{ id: number }>('/receipts', 'POST', {
+            const created = await api<Pick<Receipt, 'id' | 'awbNumber'>>('/receipts', 'POST', {
                 templateId: template.id,
                 branchId: branch?.id,
                 data,
             });
             await queryClient.invalidateQueries({ queryKey: ['receipts'] });
             void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+            toast.success(`Receipt ${created.awbNumber} created`);
             await navigate({
                 to: '/receipts/$id',
                 params: { id: created.id },
@@ -130,9 +140,13 @@ function ReceiptForm({ template, fields, branch }: ReceiptFormProps) {
     });
 
     return (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
-            <Card className="p-5">
-                <form onSubmit={(e) => void onSubmit(e)} className="space-y-4">
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_auto]">
+            <Card className="animate-fade-up">
+                <CardHeader
+                    title="Consignment details"
+                    description={`${template.name} · fields marked * are required`}
+                />
+                <form onSubmit={(e) => void onSubmit(e)} className="space-y-6 p-5">
                     <ErrorBanner message={errors.root?.message} />
                     <div className="grid gap-4 sm:grid-cols-2">
                         {fields.map((field) => (
@@ -147,26 +161,39 @@ function ReceiptForm({ template, fields, branch }: ReceiptFormProps) {
                             </FormField>
                         ))}
                     </div>
-                    <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? 'Saving…' : 'Create receipt'}
-                    </Button>
+                    <div className="flex justify-end border-t pt-5">
+                        <Button
+                            type="submit"
+                            size="lg"
+                            className="w-full sm:w-auto"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? <Loader2 className="animate-spin" /> : <Check />}
+                            {isSubmitting ? 'Saving…' : 'Create receipt'}
+                        </Button>
+                    </div>
                 </form>
             </Card>
-            <div className="hidden lg:block">
-                <p className="mb-2 text-sm text-slate-500">Live preview</p>
-                <div className="overflow-auto rounded-lg border border-slate-200 shadow-sm">
-                    <ReceiptRenderer
-                        layout={template.layout}
-                        fields={fieldMap(fields)}
-                        data={values as ReceiptData}
-                        awbNumber={`${branch?.code ?? 'XXXX'}0000000`}
-                        createdAt={now}
-                        branch={branch}
-                        copy={firstCopy(template.layout)}
-                        zoom={fitZoom(template.layout, 380)}
-                    />
+            <Card
+                className="hidden animate-fade-up overflow-hidden xl:sticky xl:top-20 xl:block"
+                style={stagger(1)}
+            >
+                <CardHeader title="Live preview" description="Updates as you type" />
+                <div className="bg-grid bg-muted/40 p-4">
+                    <div className="overflow-hidden rounded-sm shadow-lg ring-1 ring-black/5">
+                        <ReceiptRenderer
+                            layout={template.layout}
+                            fields={fieldMap(fields)}
+                            data={values as ReceiptData}
+                            awbNumber={`${branch?.code ?? 'XXXX'}0000000`}
+                            createdAt={now}
+                            branch={branch}
+                            copy={firstCopy(template.layout)}
+                            zoom={fitZoom(template.layout, 380)}
+                        />
+                    </div>
                 </div>
-            </div>
+            </Card>
         </div>
     );
 }

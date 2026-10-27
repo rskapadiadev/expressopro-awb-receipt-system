@@ -23,13 +23,14 @@ import { editColumn } from '@/lib/columns';
 import { fieldsQuery, useSave } from '@/lib/queries';
 
 export function FieldsPage() {
-    const { data: fields = [] } = useQuery(fieldsQuery);
+    const { data: fields = [], isPending } = useQuery(fieldsQuery);
     const [editing, setEditing] = useState<Editing<FieldDefinition>>(null);
 
     return (
         <>
             <PageHeader
                 title="Field library"
+                description="The fields templates can use. Keys are permanent once created."
                 actions={
                     <Button
                         onClick={() => {
@@ -40,8 +41,9 @@ export function FieldsPage() {
                     </Button>
                 }
             />
-            <Card>
+            <Card className="overflow-hidden">
                 <DataTable
+                    loading={isPending}
                     rows={fields}
                     rowKey={(f) => f.id}
                     columns={[
@@ -50,7 +52,9 @@ export function FieldsPage() {
                             cell: (f) => (
                                 <div className="leading-tight">
                                     <div className="font-medium">{f.label}</div>
-                                    <div className="font-mono text-xs text-slate-500">{f.key}</div>
+                                    <div className="font-mono text-xs text-muted-foreground">
+                                        {f.key}
+                                    </div>
                                 </div>
                             ),
                         },

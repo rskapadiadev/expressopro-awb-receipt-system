@@ -12,6 +12,7 @@ import type {
     UserRow,
 } from '@shared/types';
 import type { ReceiptQuery } from '@shared/schemas';
+import { toast } from 'sonner';
 import { api } from './api';
 
 const toQueryString = (params: Record<string, string | number | undefined>) => {
@@ -98,8 +99,12 @@ export function useSave<TInput>(resource: string, invalidate: string[]) {
                 id ? 'PUT' : 'POST',
                 input,
             ),
-        onSuccess: () =>
-            Promise.all(invalidate.map((key) => client.invalidateQueries({ queryKey: [key] }))),
+        onSuccess: () => {
+            toast.success('Saved');
+            return Promise.all(
+                invalidate.map((key) => client.invalidateQueries({ queryKey: [key] })),
+            );
+        },
     });
 }
 

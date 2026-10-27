@@ -50,7 +50,7 @@ export function ElementContent({ el, ctx }: ElementContentProps) {
             return (
                 <>
                     {el.showLabel && (
-                        <div className="text-[0.7em] font-normal uppercase tracking-wide text-slate-500">
+                        <div className="text-[0.7em] font-normal uppercase tracking-wide text-muted-foreground">
                             {field.label}
                         </div>
                     )}

@@ -7,27 +7,33 @@ import type {
 } from 'react';
 import { cn } from '@/lib/utils';
 
+// Matches shadcn's Input so native selects and textareas look like the same family.
 const control =
-    'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-xs focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-slate-100';
+    'w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1.5 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive md:text-sm dark:bg-input/30';
 
-export const Input = ({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) => (
-    <input className={cn(control, 'h-10', className)} {...props} />
-);
+export { Input } from './input';
 
 export const Textarea = ({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) => (
-    <textarea className={cn(control, 'min-h-20', className)} {...props} />
+    <textarea className={cn(control, 'min-h-20 py-2', className)} {...props} />
 );
 
 export const Select = ({ className, ...props }: SelectHTMLAttributes<HTMLSelectElement>) => (
-    <select className={cn(control, 'h-10', className)} {...props} />
+    <select
+        className={cn(control, 'h-9 cursor-pointer pr-8 dark:[&>option]:bg-popover', className)}
+        {...props}
+    />
 );
 
 export const Label = ({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) => (
-    <label className={cn('text-sm font-medium text-slate-700', className)} {...props} />
+    <label className={cn('text-sm leading-none font-medium select-none', className)} {...props} />
 );
 
 export const Checkbox = ({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) => (
-    <input type="checkbox" className={cn('size-4 accent-brand', className)} {...props} />
+    <input
+        type="checkbox"
+        className={cn('size-4 shrink-0 cursor-pointer rounded accent-primary', className)}
+        {...props}
+    />
 );
 
 interface FieldProps {
@@ -41,13 +47,13 @@ interface FieldProps {
 
 export function FormField({ label, htmlFor, error, hint, className, children }: FieldProps) {
     return (
-        <div className={cn('space-y-1.5', className)}>
+        <div className={cn('grid gap-2', className)}>
             <Label htmlFor={htmlFor}>{label}</Label>
             {children}
             {error ? (
-                <p className="text-xs text-red-600">{error}</p>
+                <p className="text-xs font-medium text-destructive">{error}</p>
             ) : (
-                hint && <p className="text-xs text-slate-500">{hint}</p>
+                hint && <p className="text-xs text-muted-foreground">{hint}</p>
             )}
         </div>
     );
@@ -55,7 +61,10 @@ export function FormField({ label, htmlFor, error, hint, className, children }: 
 
 export const ErrorBanner = ({ message }: { message?: string }) =>
     message ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p
+            role="alert"
+            className="animate-fade-up rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+        >
             {message}
         </p>
     ) : null;

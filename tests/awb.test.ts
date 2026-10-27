@@ -23,6 +23,8 @@ describe('branch rules', () => {
             phone: '',
             address: '',
             isActive: true,
+            templateIds: [],
+            defaultTemplateId: null,
         };
         expect(
             branchInputSchema.parse({
@@ -44,8 +46,6 @@ describe('branch rules', () => {
             username: 'store1',
             password: 'Store@123',
             isActive: true,
-            templateIds: [],
-            defaultTemplateId: null,
             branchId: null,
         };
         expect(

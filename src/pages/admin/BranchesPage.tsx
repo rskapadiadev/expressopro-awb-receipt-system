@@ -1,27 +1,33 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { type BranchInput, branchInputSchema } from '@shared/schemas';
-import type { Branch } from '@shared/types';
+import { can } from '@shared/permissions';
+import type { Branch, Template } from '@shared/types';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { type Editing, EditorDialog } from '@/components/EditorDialog';
+import { TemplatePicker } from '@/components/TemplatePicker';
 import { Button } from '@/components/ui/button';
 import { Badge, Card, PageHeader } from '@/components/ui/card';
 import { Checkbox, ErrorBanner, FormField, Input, Label, Textarea } from '@/components/ui/form';
 import { DataTable } from '@/components/ui/table';
 import { applyServerErrors } from '@/lib/api';
 import { editColumn } from '@/lib/columns';
-import { branchesQuery, useSave } from '@/lib/queries';
+import { branchesQuery, templatesQuery, useMe, useSave } from '@/lib/queries';
 
 export function BranchesPage() {
-    const { data: branches = [] } = useQuery(branchesQuery);
+    const { data: branches = [], isPending } = useQuery(branchesQuery);
+    const { data: templates } = useQuery(templatesQuery(true));
     const [editing, setEditing] = useState<Editing<Branch>>(null);
+    const templateName = (id: number) =>
+        templates?.items.find((t) => t.id === id)?.name ?? `#${id}`;
 
     return (
         <>
             <PageHeader
                 title="Branches"
+                description="Branch codes prefix AWB numbers. A branch's templates are what its users can book with."
                 actions={
                     <Button
                         onClick={() => {
@@ -32,34 +38,59 @@ export function BranchesPage() {
                     </Button>
                 }
             />
-            <Card>
+            <Card className="overflow-hidden">
                 <DataTable
+                    loading={isPending}
                     rows={branches}
                     rowKey={(b) => b.id}
                     empty="No branches yet. Add one before creating franchise users."
                     columns={[
                         {
                             header: 'Code',
-                            cell: (b) => <span className="font-mono font-medium">{b.code}</span>,
+                            cell: (b) => (
+                                <span className="rounded-md bg-primary/10 px-2 py-1 font-mono text-xs font-semibold text-primary">
+                                    {b.code}
+                                </span>
+                            ),
                         },
                         {
                             header: 'Name',
                             cell: (b) => (
                                 <div className="leading-tight">
                                     <div className="font-medium">{b.name}</div>
-                                    <div className="text-xs text-slate-500">{b.city}</div>
+                                    <div className="text-xs text-muted-foreground">{b.city}</div>
                                 </div>
                             ),
                         },
                         {
+                            header: 'Templates',
+                            className: 'hidden md:table-cell',
+                            cell: (b) =>
+                                b.templateIds.length ? (
+                                    <div className="flex flex-wrap gap-1">
+                                        {b.templateIds.map((id) => (
+                                            <Badge
+                                                key={id}
+                                                tone={id === b.defaultTemplateId ? 'blue' : 'slate'}
+                                            >
+                                                {templateName(id)}
+                                                {id === b.defaultTemplateId && ' ★'}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <span className="text-muted-foreground">None assigned</span>
+                                ),
+                        },
+                        {
                             header: 'Phone',
-                            className: 'hidden sm:table-cell',
+                            className: 'hidden lg:table-cell',
                             cell: (b) => b.phone || '—',
                         },
                         {
                             header: 'Status',
                             cell: (b) => (
-                                <Badge tone={b.isActive ? 'green' : 'red'}>
+                                <Badge dot tone={b.isActive ? 'green' : 'red'}>
                                     {b.isActive ? 'Active' : 'Inactive'}
                                 </Badge>
                             ),
@@ -78,6 +109,7 @@ export function BranchesPage() {
                 {(item) => (
                     <BranchForm
                         branch={item}
+                        templates={templates?.items ?? []}
                         onDone={() => {
                             setEditing(null);
                         }}
@@ -90,15 +122,19 @@ export function BranchesPage() {
 
 interface BranchFormProps {
     branch: Branch | null;
+    templates: Template[];
     onDone: () => void;
 }
 
-function BranchForm({ branch, onDone }: BranchFormProps) {
+function BranchForm({ branch, templates, onDone }: BranchFormProps) {
+    const me = useMe();
     const save = useSave<BranchInput>('branches', ['branches']);
     const {
         register,
         handleSubmit,
         setError,
+        setValue,
+        control,
         formState: { errors, isSubmitting },
     } = useForm<BranchInput>({
         resolver: zodResolver(branchInputSchema),
@@ -109,7 +145,13 @@ function BranchForm({ branch, onDone }: BranchFormProps) {
             phone: branch?.phone ?? '',
             address: branch?.address ?? '',
             isActive: branch?.isActive ?? true,
+            templateIds: branch?.templateIds ?? [],
+            defaultTemplateId: branch?.defaultTemplateId ?? null,
         },
+    });
+    const [templateIds, defaultTemplateId] = useWatch({
+        control,
+        name: ['templateIds', 'defaultTemplateId'],
     });
 
     const onSubmit = handleSubmit(async (input) => {
@@ -160,7 +202,7 @@ function BranchForm({ branch, onDone }: BranchFormProps) {
                 </FormField>
             </div>
             {branch && (
-                <p className="text-xs text-amber-700">
+                <p className="text-xs text-warning">
                     Changing the code only affects new receipts; existing AWB numbers stay as they
                     are.
                 </p>
@@ -168,6 +210,17 @@ function BranchForm({ branch, onDone }: BranchFormProps) {
             <Label className="flex items-center gap-2 font-normal">
                 <Checkbox {...register('isActive')} /> Active (can book receipts)
             </Label>
+            {can(me.role, 'templates.assign') && (
+                <TemplatePicker
+                    templates={templates}
+                    templateIds={templateIds}
+                    defaultTemplateId={defaultTemplateId}
+                    onChange={(next) => {
+                        setValue('templateIds', next.templateIds);
+                        setValue('defaultTemplateId', next.defaultTemplateId);
+                    }}
+                />
+            )}
             <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={onDone}>
                     Cancel

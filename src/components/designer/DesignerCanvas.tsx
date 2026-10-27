@@ -117,8 +117,8 @@ export function DesignerCanvas({
                             });
                         }}
                         className={cn(
-                            'outline-dashed outline-1 outline-slate-300 hover:outline-brand',
-                            selectedId === el.id && 'z-10 outline-2 outline-solid outline-brand',
+                            'outline-dashed outline-1 outline-border hover:outline-primary',
+                            selectedId === el.id && 'z-10 outline-2 outline-solid outline-primary',
                         )}
                     >
                         <ElementBody el={el} ctx={ctx} className="cursor-move" />

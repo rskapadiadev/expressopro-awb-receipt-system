@@ -18,13 +18,13 @@ export interface Branch {
     phone: string;
     address: string;
     isActive: boolean;
+    templateIds: number[];
+    defaultTemplateId: number | null;
 }
 
 export interface UserRow extends Me {
     isActive: boolean;
     createdAt: number;
-    templateIds: number[];
-    defaultTemplateId: number | null;
 }
 
 export interface Template {
@@ -70,7 +70,13 @@ export interface DashboardStats {
     today: number;
     month: number;
     total: number;
+    daily: DailyCount[];
     recent: ReceiptListItem[];
+}
+
+export interface DailyCount {
+    date: string;
+    count: number;
 }
 
 export interface TemplateWithFields {

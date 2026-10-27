@@ -20,8 +20,7 @@ import {
     PaperSettings,
     PrintSettingsPanel,
 } from '@/components/designer/PropertiesPanel';
-import { Button } from '@/components/ui/button';
-import { buttonVariants } from '@/components/ui/button-variants';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Checkbox, ErrorBanner, Input, Label } from '@/components/ui/form';
 import { historyReducer, initHistory } from '@/lib/history';
 import { fieldsQuery, templateQuery, useSave } from '@/lib/queries';
@@ -211,7 +210,7 @@ function Designer({ template }: { template: Template }) {
 
     return (
         <div className="flex h-screen flex-col">
-            <header className="flex flex-wrap items-center gap-3 border-b border-slate-200 bg-white px-4 py-2">
+            <header className="flex flex-wrap items-center gap-3 border-b bg-background/90 px-4 py-2 backdrop-blur">
                 <Link
                     to="/admin/templates"
                     className={buttonVariants({
@@ -264,7 +263,7 @@ function Designer({ template }: { template: Template }) {
                     >
                         <Redo2 className="size-4" />
                     </Button>
-                    <span className="mx-1 h-5 w-px bg-slate-200" />
+                    <span className="mx-1 h-5 w-px bg-muted" />
                     <Button
                         variant="ghost"
                         size="icon"
@@ -275,7 +274,9 @@ function Designer({ template }: { template: Template }) {
                     >
                         <Minus className="size-4" />
                     </Button>
-                    <span className="w-12 text-center text-sm">{Math.round(zoom * 100)}%</span>
+                    <span className="w-12 text-center text-sm tabular-nums">
+                        {Math.round(zoom * 100)}%
+                    </span>
                     <Button
                         variant="ghost"
                         size="icon"
@@ -287,7 +288,12 @@ function Designer({ template }: { template: Template }) {
                         <Plus className="size-4" />
                     </Button>
                 </div>
-                {dirty && <span className="text-xs text-amber-700">Unsaved changes</span>}
+                {dirty && (
+                    <span className="inline-flex animate-in items-center gap-1.5 text-xs font-medium text-warning fade-in">
+                        <span className="size-1.5 animate-pulse rounded-full bg-current" /> Unsaved
+                        changes
+                    </span>
+                )}
                 <Button onClick={onSave} disabled={save.isPending || !dirty}>
                     <Save className="size-4" /> {save.isPending ? 'Saving…' : 'Save'}
                 </Button>
@@ -298,10 +304,10 @@ function Designer({ template }: { template: Template }) {
                 </div>
             )}
             <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-                <aside className="max-h-48 shrink-0 overflow-y-auto border-b border-slate-200 bg-white p-2 md:max-h-none md:w-56 md:border-r md:border-b-0">
+                <aside className="max-h-48 shrink-0 overflow-y-auto border-b bg-sidebar p-2 md:max-h-none md:w-56 md:border-r md:border-b-0">
                     <Palette fields={fields} placedKeys={placedKeys} onAdd={addElement} />
                 </aside>
-                <main className="flex-1 overflow-auto bg-slate-200 p-8">
+                <main className="bg-grid flex-1 overflow-auto bg-muted/60 p-4 md:p-10">
                     <DesignerCanvas
                         layout={layout}
                         guide={guide}
@@ -312,7 +318,7 @@ function Designer({ template }: { template: Template }) {
                         onChange={updateElement}
                     />
                 </main>
-                <aside className="shrink-0 space-y-6 overflow-y-auto border-t border-slate-200 bg-white p-4 md:w-72 md:border-t-0 md:border-l">
+                <aside className="shrink-0 space-y-6 overflow-y-auto border-t bg-sidebar p-4 md:w-80 md:border-t-0 md:border-l">
                     <PaperSettings layout={layout} onChange={patchLayout} />
                     {selected ? (
                         <ElementProperties
@@ -331,7 +337,7 @@ function Designer({ template }: { template: Template }) {
                         />
                     ) : (
                         <>
-                            <p className="text-sm text-slate-500">
+                            <p className="text-sm text-muted-foreground">
                                 Add elements from the left, then drag and resize them. Edges snap to
                                 other elements (hold Alt/Option to place freely). Arrow keys nudge 1
                                 mm (Shift = 5 mm); {MOD}C / {MOD}V copy and paste, {MOD}D

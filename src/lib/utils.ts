@@ -1,7 +1,23 @@
 import { type ClassValue, clsx } from 'clsx';
+import type { CSSProperties } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
+
+// Stagger index for the animate-fade-up utility (capped so long lists don't lag).
+export const stagger = (i: number) => ({ '--i': Math.min(i, 8) }) as CSSProperties;
+
+export const STATUS_LABELS = {
+    active: 'Active',
+    void: 'Void',
+} as const;
+
+export const initials = (name: string) =>
+    name
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((w) => w[0]?.toUpperCase() ?? '')
+        .join('');
 
 export const formatDateTime = (ms: number) =>
     new Date(ms).toLocaleString('en-IN', {

@@ -147,8 +147,15 @@ export const PAPER_PRESETS = [
     },
 ] as const;
 
-export const fieldKeysOf = (layout: TemplateLayout) =>
-    layout.elements.flatMap((el) => (el.kind === 'field' && el.fieldKey ? [el.fieldKey] : []));
+// Fields a template collects: placed fields plus those that only drive a tick mark (e.g. AIR/SRF).
+const INPUT_KINDS: ElementKind[] = ['field', 'mark'];
+export const fieldKeysOf = (layout: TemplateLayout) => [
+    ...new Set(
+        layout.elements.flatMap((el) =>
+            INPUT_KINDS.includes(el.kind) && el.fieldKey ? [el.fieldKey] : [],
+        ),
+    ),
+];
 
 export const paperKey = (layout: Pick<TemplateLayout, 'widthMm' | 'heightMm'>) =>
     `${layout.widthMm}×${layout.heightMm} mm`;

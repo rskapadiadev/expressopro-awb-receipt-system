@@ -28,9 +28,11 @@ export function Palette({ fields, placedKeys, onAdd }: PaletteProps) {
     return (
         <div className="space-y-4">
             <section>
-                <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-slate-500">Fields</h3>
+                <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-muted-foreground">
+                    Fields
+                </h3>
                 {available.length === 0 ? (
-                    <p className="px-2 text-xs text-slate-400">All fields placed</p>
+                    <p className="px-2 text-xs text-muted-foreground">All fields placed</p>
                 ) : (
                     available.map((f) =>
                         item(f.key, f.label, () => {
@@ -40,7 +42,7 @@ export function Palette({ fields, placedKeys, onAdd }: PaletteProps) {
                 )}
             </section>
             <section>
-                <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-slate-500">
+                <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-muted-foreground">
                     Elements
                 </h3>
                 {STATIC_KINDS.map((kind) =>

@@ -64,7 +64,7 @@ interface SectionProps {
 
 const Section = ({ title, children }: SectionProps) => (
     <section className="space-y-3">
-        <h3 className="text-xs font-semibold uppercase text-slate-500">{title}</h3>
+        <h3 className="text-xs font-semibold uppercase text-muted-foreground">{title}</h3>
         {children}
     </section>
 );
@@ -176,7 +176,7 @@ export function PrintSettingsPanel({ layout, onChange }: PaperProps) {
                     ))}
                 </Select>
             </FormField>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
                 Sheet layout (used in &quot;multiple per sheet&quot; mode):
             </p>
             <SizeFields
@@ -205,7 +205,7 @@ export function PrintSettingsPanel({ layout, onChange }: PaperProps) {
                     }}
                 />
             </div>
-            <p className="rounded-md bg-slate-100 px-3 py-2 text-xs text-slate-700">
+            <p className="rounded-md bg-muted px-3 py-2 text-xs text-foreground/80">
                 Fits <strong>{grid.perSheet}</strong> per sheet ({grid.cols} × {grid.rows})
             </p>
         </Section>
@@ -376,7 +376,7 @@ export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove 
                         </FormField>
                     )}
                     {field?.type === 'checkbox' && (
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-muted-foreground">
                             Shows the mark when the box is ticked.
                         </p>
                     )}
@@ -456,9 +456,11 @@ export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove 
                 </>
             )}
 
-            <div className="space-y-2 rounded-md border border-slate-200 p-3">
+            <div className="space-y-2 rounded-md border border-border p-3">
                 <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold uppercase text-slate-500">Cell</span>
+                    <span className="text-xs font-semibold uppercase text-muted-foreground">
+                        Cell
+                    </span>
                     <div className="flex gap-1">
                         <Button
                             size="sm"
@@ -487,7 +489,7 @@ export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove 
                         <Button
                             key={side}
                             size="sm"
-                            variant={sides.includes(side) ? 'primary' : 'outline'}
+                            variant={sides.includes(side) ? 'default' : 'outline'}
                             className="h-7 px-1 text-xs"
                             aria-pressed={sides.includes(side)}
                             onClick={() => {
@@ -521,7 +523,7 @@ export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove 
                 <Button variant="outline" size="sm" onClick={onDuplicate}>
                     <Copy className="size-4" /> Duplicate
                 </Button>
-                <Button variant="danger" size="sm" onClick={onRemove}>
+                <Button variant="destructive" size="sm" onClick={onRemove}>
                     <Trash2 className="size-4" /> Remove
                 </Button>
             </div>
@@ -587,7 +589,7 @@ export function GuidePanel({ guide, onChange }: GuideProps) {
 
     return (
         <Section title="Tracing guide">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
                 Upload a photo or screenshot of an existing receipt and place fields on top of it.
                 It is stretched to the paper size and never printed.
             </p>
@@ -598,7 +600,7 @@ export function GuidePanel({ guide, onChange }: GuideProps) {
                     void onFile(e.target.files?.[0]);
                 }}
             />
-            {error && <p className="text-xs text-red-600">{error}</p>}
+            {error && <p className="text-xs text-destructive">{error}</p>}
             {guide && (
                 <>
                     <FormField label={`Opacity (${Math.round(guide.opacity * 100)}%)`}>
@@ -608,7 +610,7 @@ export function GuidePanel({ guide, onChange }: GuideProps) {
                             max={1}
                             step={0.05}
                             value={guide.opacity}
-                            className="w-full accent-brand"
+                            className="w-full accent-primary"
                             onChange={(e) => {
                                 onChange({
                                     ...guide,

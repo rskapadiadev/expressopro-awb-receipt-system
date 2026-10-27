@@ -4,7 +4,7 @@ import { fieldKeysOf } from '../../shared/layout';
 import { can } from '../../shared/permissions';
 import type { Me, Template } from '../../shared/types';
 import type { Db } from '../db';
-import { fieldDefinitions, templates, userTemplates } from '../db/schema';
+import { branchTemplates, fieldDefinitions, templates } from '../db/schema';
 import { fail } from './http';
 
 const templateColumns = {
@@ -15,7 +15,7 @@ const templateColumns = {
     layout: templates.layout,
 };
 
-// Templates the user may create receipts with, plus their default choice.
+// Templates the user may create receipts with (their branch's), plus the branch default.
 export async function usableTemplates(db: Db, me: Me) {
     if (can(me.role, 'templates.useAll')) {
         const items = await db
@@ -31,11 +31,11 @@ export async function usableTemplates(db: Db, me: Me) {
     const rows = await db
         .select({
             ...templateColumns,
-            isDefault: userTemplates.isDefault,
+            isDefault: branchTemplates.isDefault,
         })
-        .from(userTemplates)
-        .innerJoin(templates, eq(templates.id, userTemplates.templateId))
-        .where(and(eq(userTemplates.userId, me.id), eq(templates.isActive, true)))
+        .from(branchTemplates)
+        .innerJoin(templates, eq(templates.id, branchTemplates.templateId))
+        .where(and(eq(branchTemplates.branchId, me.branchId ?? 0), eq(templates.isActive, true)))
         .orderBy(templates.name);
     return {
         items: rows.map(({ isDefault: _, ...t }) => t),

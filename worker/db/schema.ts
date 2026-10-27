@@ -64,18 +64,19 @@ export const templates = sqliteTable('templates', {
     createdAt: createdAt(),
 });
 
-export const userTemplates = sqliteTable(
-    'user_templates',
+// Templates a branch's users can book with; one may be the default.
+export const branchTemplates = sqliteTable(
+    'branch_templates',
     {
-        userId: integer('user_id')
+        branchId: integer('branch_id')
             .notNull()
-            .references(() => users.id, { onDelete: 'cascade' }),
+            .references(() => branches.id, { onDelete: 'cascade' }),
         templateId: integer('template_id')
             .notNull()
             .references(() => templates.id, { onDelete: 'cascade' }),
         isDefault: integer('is_default', { mode: 'boolean' }).notNull().default(false),
     },
-    (t) => [primaryKey({ columns: [t.userId, t.templateId] })],
+    (t) => [primaryKey({ columns: [t.branchId, t.templateId] })],
 );
 
 export const receipts = sqliteTable(

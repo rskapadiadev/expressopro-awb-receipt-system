@@ -49,6 +49,19 @@ export default tseslint.config(
             globals: globals.node,
         },
     },
+    // shadcn/ui generated components: kept as vendored code so `shadcn add` updates apply cleanly.
+    {
+        files: [
+            'src/components/ui/{avatar,button,dialog,dropdown-menu,input,separator,sheet,sidebar,skeleton,sonner,tooltip}.tsx',
+            'src/hooks/use-mobile.ts',
+        ],
+        rules: {
+            'react-refresh/only-export-components': 'off',
+            'react-hooks/purity': 'off',
+            'react-hooks/set-state-in-effect': 'off',
+            '@typescript-eslint/no-unused-expressions': 'off',
+        },
+    },
     prettier,
     // Re-enabled after eslint-config-prettier: object literals with 2+ props go one prop per line.
     // Destructuring is left to Prettier, which always collapses patterns and would fight this rule.

@@ -99,6 +99,8 @@ const sql = [
     `INSERT INTO templates (name, layout) SELECT 'Standard A5', ${q(JSON.stringify(layout))} WHERE NOT EXISTS (SELECT 1 FROM templates);`,
     `INSERT INTO templates (name, layout) SELECT ${q(consignmentNote.name)}, ${q(JSON.stringify(consignmentNote.layout))} WHERE NOT EXISTS (SELECT 1 FROM templates WHERE name = ${q(consignmentNote.name)});`,
     `INSERT OR IGNORE INTO branches (code, name, city) VALUES ('SURT', 'Surat Head Office', 'Surat');`,
+    // The sample branch gets every template, with the consignment note as its default.
+    `INSERT OR IGNORE INTO branch_templates (branch_id, template_id, is_default) SELECT b.id, t.id, t.name = ${q(consignmentNote.name)} FROM branches b, templates t WHERE b.code = 'SURT';`,
 ];
 
 const file = join(mkdtempSync(join(tmpdir(), 'awb-seed-')), 'seed.sql');

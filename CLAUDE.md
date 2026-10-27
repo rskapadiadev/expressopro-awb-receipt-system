@@ -25,6 +25,8 @@ npm run db:generate          # after editing worker/db/schema.ts
 npm run db:migrate:local     # apply migrations to local D1
 npm run db:seed:local -- --password '...'   # super admin, starter fields, sample branch + templates
 npm run check:size           # build + Worker upload size
+npm run db:demo:local        # demo branches DEM1/DEM2, demo_* logins, 40 receipts (re-run resets)
+npm run db:demo:clean:local  # removes only demo data; *:remote variants need `-- --confirm`
 ```
 
 To reset local data, delete `.wrangler/state`, then run the migrate and seed commands again.

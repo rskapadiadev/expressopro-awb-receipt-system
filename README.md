@@ -37,6 +37,23 @@ The seed command creates:
 
 Run the seed with `--username <name>` to choose a different login name.
 
+## Demo data
+
+Use this to show the client a populated system: dashboard chart, receipts and multiple branches.
+
+```bash
+npm run db:demo:local                          # or: npm run db:demo:remote -- --confirm
+npm run db:demo:clean:local                    # or: npm run db:demo:clean:remote -- --confirm
+```
+
+- **What it creates:**
+    - Branches `DEM1` (Demo – Surat) and `DEM2` (Demo – Baroda), with all templates assigned.
+    - Logins `demo_admin`, `demo_surat` and `demo_baroda`, all with password `Demo@12345` (change it with `-- --password '...'`).
+    - 40 receipts spread over the last 14 days.
+- **Re-running resets the demo data** rather than adding more.
+- **Clean-up removes only demo data;** real branches, users and receipts are untouched.
+- **Production needs `--confirm`,** because demo receipts look like real bookings there. Clean them up before go-live.
+
 ## Everyday commands
 
 | Command               | What it does                                                    |

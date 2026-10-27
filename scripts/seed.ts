@@ -1,12 +1,9 @@
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import type { FieldType } from '../shared/fields';
 import type { TemplateLayout } from '../shared/layout';
 import { hashPassword, randomToken } from '../shared/password';
 import { consignmentNote } from './consignment-note';
+import { q, runSql } from './d1';
 import { el, field } from './layout-helpers';
 
 const { values: args } = parseArgs({
@@ -26,9 +23,6 @@ const { values: args } = parseArgs({
         },
     },
 });
-
-const q = (v: string | number | boolean) =>
-    typeof v === 'string' ? `'${v.replace(/'/g, "''")}'` : String(Number(v));
 
 const fields: [
     key: string,
@@ -103,11 +97,5 @@ const sql = [
     `INSERT OR IGNORE INTO branch_templates (branch_id, template_id, is_default) SELECT b.id, t.id, t.name = ${q(consignmentNote.name)} FROM branches b, templates t WHERE b.code = 'SURT';`,
 ];
 
-const file = join(mkdtempSync(join(tmpdir(), 'awb-seed-')), 'seed.sql');
-writeFileSync(file, sql.join('\n'));
-execFileSync(
-    'npx',
-    ['wrangler', 'd1', 'execute', 'DB', args.remote ? '--remote' : '--local', `--file=${file}`],
-    { stdio: 'inherit' },
-);
+runSql(sql, args.remote);
 console.log(`\nSuper Admin: ${args.username} / ${password} (ignored if this user already existed)`);

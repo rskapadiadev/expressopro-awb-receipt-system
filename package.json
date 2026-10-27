@@ -18,7 +18,11 @@
         "db:seed:local": "tsx scripts/seed.ts",
         "db:seed:remote": "tsx scripts/seed.ts --remote",
         "prepare": "husky",
-        "check:size": "npm run build && wrangler deploy --dry-run"
+        "check:size": "npm run build && wrangler deploy --dry-run",
+        "db:demo:local": "tsx scripts/seed-demo.ts",
+        "db:demo:remote": "tsx scripts/seed-demo.ts --remote",
+        "db:demo:clean:local": "tsx scripts/seed-demo.ts --clean",
+        "db:demo:clean:remote": "tsx scripts/seed-demo.ts --clean --remote"
     },
     "lint-staged": {
         "*.{ts,tsx,js,mjs}": [

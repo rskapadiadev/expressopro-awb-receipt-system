@@ -9,10 +9,10 @@
     },
     "d1_databases": [
         {
+            // `npm run dev` uses a local copy; only --remote commands and deploys touch this database.
             "binding": "DB",
             "database_name": "expresspro-awb",
-            // Replace with the id printed by `wrangler d1 create expresspro-awb`.
-            "database_id": "00000000-0000-0000-0000-000000000000",
+            "database_id": "62f86d5a-0a8a-4372-89ae-16b0acccbc52",
             "migrations_dir": "migrations",
         },
     ],

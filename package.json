@@ -1,5 +1,5 @@
 {
-    "name": "expresspro-awb-receipt-system",
+    "name": "expressopro-awb-receipt-system",
     "private": true,
     "type": "module",
     "scripts": {
@@ -22,7 +22,8 @@
         "db:demo:local": "tsx scripts/seed-demo.ts",
         "db:demo:remote": "tsx scripts/seed-demo.ts --remote",
         "db:demo:clean:local": "tsx scripts/seed-demo.ts --clean",
-        "db:demo:clean:remote": "tsx scripts/seed-demo.ts --clean --remote"
+        "db:demo:clean:remote": "tsx scripts/seed-demo.ts --clean --remote",
+        "db:link:remote": "tsx scripts/link-db.ts"
     },
     "lint-staged": {
         "*.{ts,tsx,js,mjs}": [

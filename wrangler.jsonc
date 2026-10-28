@@ -1,6 +1,6 @@
 {
     "$schema": "node_modules/wrangler/config-schema.json",
-    "name": "expresspro-awb",
+    "name": "expressopro-awb",
     "main": "worker/index.ts",
     "compatibility_date": "2026-10-01",
     "assets": {
@@ -11,8 +11,8 @@
         {
             // `npm run dev` uses a local copy; only --remote commands and deploys touch this database.
             "binding": "DB",
-            "database_name": "expresspro-awb",
-            "database_id": "62f86d5a-0a8a-4372-89ae-16b0acccbc52",
+            "database_name": "expressopro-awb",
+            "database_id": "40ae4140-0999-492e-9818-58c76425e2bb",
             "migrations_dir": "migrations",
         },
     ],

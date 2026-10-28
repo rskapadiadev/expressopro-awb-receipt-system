@@ -1,7 +1,12 @@
 import JsBarcode from 'jsbarcode';
 import { useEffect, useRef } from 'react';
 
-export function Barcode({ value }: { value: string }) {
+interface BarcodeProps {
+    value: string;
+    color: string;
+}
+
+export function Barcode({ value, color }: BarcodeProps) {
     const ref = useRef<SVGSVGElement>(null);
 
     useEffect(() => {
@@ -14,6 +19,8 @@ export function Barcode({ value }: { value: string }) {
             displayValue: false,
             margin: 0,
             height: 60,
+            lineColor: color,
+            background: 'transparent',
         });
         // Stretch the generated bars to fill whatever box the template gives them.
         // JsBarcode writes sizes like "268px"; viewBox only accepts plain numbers.
@@ -21,7 +28,7 @@ export function Barcode({ value }: { value: string }) {
         svg.setAttribute('viewBox', `0 0 ${size('width')} ${size('height')}`);
         svg.setAttribute('width', '100%');
         svg.setAttribute('height', '100%');
-    }, [value]);
+    }, [value, color]);
 
     return <svg ref={ref} preserveAspectRatio="none" className="block h-full w-full" />;
 }

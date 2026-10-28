@@ -11,7 +11,8 @@ import type { Template } from '@shared/types';
 import { ArrowLeft, Minus, Plus, Redo2, Save, Undo2 } from 'lucide-react';
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { DesignerCanvas } from '@/components/designer/DesignerCanvas';
-import { cloneElement, newElement } from '@/components/designer/elements';
+import { cloneElement, newElement, reorder, TEXT_KINDS } from '@/components/designer/elements';
+import { ElementToolbar } from '@/components/designer/ElementToolbar';
 import { Palette } from '@/components/designer/Palette';
 import {
     CopiesPanel,
@@ -40,6 +41,13 @@ const isTyping = (e: KeyboardEvent) =>
 
 const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
 const MOD = isMac ? '⌘' : 'Ctrl+';
+
+// ⌘/Ctrl + B / I / U toggle text styles on the selected element.
+const STYLE_KEYS = {
+    b: 'bold',
+    i: 'italic',
+    u: 'underline',
+} as const;
 
 const NUDGE_KEYS: Record<string, [dx: number, dy: number]> = {
     ArrowLeft: [-1, 0],
@@ -137,6 +145,14 @@ function Designer({ template }: { template: Template }) {
     const duplicate = (el: LayoutElement) => {
         insertElement(cloneElement(el, layout));
     };
+    const order = (elId: string, toFront: boolean) => {
+        edit((prev) => ({
+            ...prev,
+            elements: reorder(prev.elements, elId, toFront),
+        }));
+    };
+    const styleKey = (key: string) =>
+        Object.hasOwn(STYLE_KEYS, key) ? STYLE_KEYS[key as keyof typeof STYLE_KEYS] : undefined;
 
     // Canvas shortcuts. Ignored while typing so text boxes keep their native behaviour.
     useEffect(() => {
@@ -157,10 +173,20 @@ function Designer({ template }: { template: Template }) {
                 } else if (key === 'd' && selected) {
                     e.preventDefault();
                     duplicate(selected);
+                } else if (selected && TEXT_KINDS.includes(selected.kind)) {
+                    const style = styleKey(key);
+                    if (style) {
+                        e.preventDefault();
+                        updateElement(selected.id, { [style]: !selected[style] });
+                    }
                 }
                 return;
             }
             if (!selected) {
+                return;
+            }
+            if (e.key === 'Escape') {
+                setSelectedId(null);
                 return;
             }
             const nudge = NUDGE_KEYS[e.key];
@@ -307,7 +333,15 @@ function Designer({ template }: { template: Template }) {
                 <aside className="max-h-48 shrink-0 overflow-y-auto border-b bg-sidebar p-2 md:max-h-none md:w-56 md:border-r md:border-b-0">
                     <Palette fields={fields} placedKeys={placedKeys} onAdd={addElement} />
                 </aside>
-                <main className="bg-grid flex-1 overflow-auto bg-muted/60 p-4 md:p-10">
+                {/* Clicking the empty area around the paper deselects, bringing back the template settings. */}
+                <main
+                    className="bg-grid flex-1 overflow-auto bg-muted/60 p-4 md:p-10"
+                    onMouseDown={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setSelectedId(null);
+                        }
+                    }}
+                >
                     <DesignerCanvas
                         layout={layout}
                         guide={guide}
@@ -316,6 +350,25 @@ function Designer({ template }: { template: Template }) {
                         selectedId={selectedId}
                         onSelect={setSelectedId}
                         onChange={updateElement}
+                        toolbar={
+                            selected && (
+                                <ElementToolbar
+                                    el={selected}
+                                    onChange={(patch) => {
+                                        updateElement(selected.id, patch, `toolbar:${selected.id}`);
+                                    }}
+                                    onDuplicate={() => {
+                                        duplicate(selected);
+                                    }}
+                                    onRemove={() => {
+                                        removeElement(selected.id);
+                                    }}
+                                    onOrder={(toFront) => {
+                                        order(selected.id, toFront);
+                                    }}
+                                />
+                            )
+                        }
                     />
                 </main>
                 <aside className="shrink-0 space-y-6 overflow-y-auto border-t bg-sidebar p-4 md:w-80 md:border-t-0 md:border-l">
@@ -338,10 +391,12 @@ function Designer({ template }: { template: Template }) {
                     ) : (
                         <>
                             <p className="text-sm text-muted-foreground">
-                                Add elements from the left, then drag and resize them. Edges snap to
-                                other elements (hold Alt/Option to place freely). Arrow keys nudge 1
-                                mm (Shift = 5 mm); {MOD}C / {MOD}V copy and paste, {MOD}D
-                                duplicates.
+                                Add elements from the left, then drag and resize them. Click an
+                                element for its toolbar: borders, text style, colours and layering.
+                                Edges snap to other elements (hold Alt/Option to place freely).
+                                Arrow keys nudge 1 mm (Shift = 5 mm); {MOD}C / {MOD}V copy and
+                                paste, {MOD}D duplicates, {MOD}B / {MOD}I / {MOD}U style text, Esc
+                                deselects.
                             </p>
                             <CopiesPanel
                                 copies={layout.copies ?? []}

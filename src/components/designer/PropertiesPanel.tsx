@@ -1,10 +1,12 @@
 import type { FieldDefinition, FieldType } from '@shared/fields';
 import {
+    BORDER_STYLES,
+    type BorderStyle,
     BRANCH_DISPLAYS,
     COPY_PLACEHOLDER,
     DATE_FORMATS,
+    DEFAULT_STYLE,
     ELEMENT_LABELS,
-    type ElementKind,
     type LayoutElement,
     ORIENTATION_LABELS,
     type Orientation,
@@ -28,6 +30,8 @@ import { type ReactNode, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox, FormField, Input, Label, Select, Textarea } from '@/components/ui/form';
 import { readImage } from '@/lib/image';
+import { ColorField } from './ColorPicker';
+import { TEXT_KINDS, toggleBorder } from './elements';
 
 const NumberInput = ({
     label,
@@ -249,7 +253,15 @@ const VALIGN_OPTIONS = [
     ['middle', 'Middle'],
     ['bottom', 'Bottom'],
 ] as const;
-const MARK_SYMBOLS = ['✓', '✔', '✗', 'X', '●', 'Yes'].map((s) => [s, s] as const);
+const MARK_SYMBOLS = ['✓', '✔', '✗', 'X', '●', 'Yes'];
+const CUSTOM_MARK = 'custom';
+const MARK_OPTIONS = [
+    ...MARK_SYMBOLS.map((s) => [s, s] as const),
+    [CUSTOM_MARK, 'Custom text…'] as const,
+];
+const BORDER_STYLE_OPTIONS = BORDER_STYLES.map(
+    (b) => [b, `${b[0]?.toUpperCase() ?? ''}${b.slice(1)}`] as const,
+);
 const SIDE_LABELS: Record<Side, string> = {
     top: 'Top',
     right: 'Right',
@@ -258,7 +270,6 @@ const SIDE_LABELS: Record<Side, string> = {
 };
 
 const BOX_KEYS = ['x', 'y', 'w', 'h'] as const;
-const TEXT_KINDS: ElementKind[] = ['field', 'text', 'awb', 'date', 'branch', 'mark'];
 const MARK_FIELD_TYPES: FieldType[] = ['select', 'checkbox', 'text'];
 
 interface ElementProps {
@@ -272,10 +283,8 @@ interface ElementProps {
 export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove }: ElementProps) {
     const field = fields.find((f) => f.key === el.fieldKey);
     const sides = el.border ?? [];
-    const toggleSide = (side: Side) => {
-        const border = sides.includes(side) ? sides.filter((x) => x !== side) : [...sides, side];
-        onChange({ border });
-    };
+    // Custom marks keep their own text (e.g. "FAST", "Y"); kept in state so an empty box stays custom.
+    const [customMark, setCustomMark] = useState(!MARK_SYMBOLS.includes(el.text ?? '✓'));
 
     const onImage = async (file: File | undefined) => {
         if (!file) {
@@ -382,12 +391,27 @@ export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove 
                     )}
                     <SelectField
                         label="Mark"
-                        value={el.text ?? '✓'}
-                        options={MARK_SYMBOLS}
+                        value={customMark ? CUSTOM_MARK : (el.text ?? '✓')}
+                        options={MARK_OPTIONS}
                         onChange={(text) => {
-                            onChange({ text });
+                            const custom = text === CUSTOM_MARK;
+                            setCustomMark(custom);
+                            onChange({ text: custom ? '' : text });
                         }}
                     />
+                    {customMark && (
+                        <FormField label="Custom mark text" hint="Printed instead of ✓">
+                            <Input
+                                autoFocus
+                                maxLength={40}
+                                placeholder="e.g. FAST"
+                                value={el.text ?? ''}
+                                onChange={(e) => {
+                                    onChange({ text: e.target.value });
+                                }}
+                            />
+                        </FormField>
+                    )}
                 </>
             )}
             {el.kind === 'image' && (
@@ -441,6 +465,24 @@ export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove 
                             />
                             Bold
                         </Label>
+                        <Label className="flex items-center gap-2 font-normal">
+                            <Checkbox
+                                checked={el.italic ?? false}
+                                onChange={(e) => {
+                                    onChange({ italic: e.target.checked });
+                                }}
+                            />
+                            Italic
+                        </Label>
+                        <Label className="flex items-center gap-2 font-normal">
+                            <Checkbox
+                                checked={el.underline ?? false}
+                                onChange={(e) => {
+                                    onChange({ underline: e.target.checked });
+                                }}
+                            />
+                            Underline
+                        </Label>
                         {el.kind === 'field' && (
                             <Label className="flex items-center gap-2 font-normal">
                                 <Checkbox
@@ -456,10 +498,29 @@ export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove 
                 </>
             )}
 
+            <ColorField
+                label={TEXT_KINDS.includes(el.kind) ? 'Text colour' : 'Colour'}
+                value={el.color}
+                fallback={DEFAULT_STYLE.color}
+                noneLabel="Black"
+                onChange={(color) => {
+                    onChange({ color });
+                }}
+            />
+            <ColorField
+                label="Fill"
+                value={el.background}
+                fallback="#ffffff"
+                noneLabel="None"
+                onChange={(background) => {
+                    onChange({ background });
+                }}
+            />
+
             <div className="space-y-2 rounded-md border border-border p-3">
                 <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold uppercase text-muted-foreground">
-                        Cell
+                        Border &amp; cell
                     </span>
                     <div className="flex gap-1">
                         <Button
@@ -493,13 +554,41 @@ export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove 
                             className="h-7 px-1 text-xs"
                             aria-pressed={sides.includes(side)}
                             onClick={() => {
-                                toggleSide(side);
+                                onChange({ border: toggleBorder(el, side) });
                             }}
                         >
                             {SIDE_LABELS[side]}
                         </Button>
                     ))}
                 </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <NumberInput
+                        label="Border (mm)"
+                        min={0.1}
+                        step={0.05}
+                        value={el.borderWidth ?? DEFAULT_STYLE.borderWidth}
+                        onChange={(borderWidth) => {
+                            onChange({ borderWidth });
+                        }}
+                    />
+                    <SelectField
+                        label="Line style"
+                        value={el.borderStyle ?? DEFAULT_STYLE.borderStyle}
+                        options={BORDER_STYLE_OPTIONS}
+                        onChange={(borderStyle) => {
+                            onChange({ borderStyle: borderStyle as BorderStyle });
+                        }}
+                    />
+                </div>
+                <ColorField
+                    label="Border colour"
+                    value={el.borderColor}
+                    fallback={DEFAULT_STYLE.borderColor}
+                    noneLabel="Black"
+                    onChange={(borderColor) => {
+                        onChange({ borderColor });
+                    }}
+                />
                 <div className="grid grid-cols-2 gap-2">
                     <NumberInput
                         label="Padding (mm)"

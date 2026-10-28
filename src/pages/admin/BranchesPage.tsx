@@ -144,6 +144,7 @@ function BranchForm({ branch, templates, onDone }: BranchFormProps) {
             city: branch?.city ?? '',
             phone: branch?.phone ?? '',
             address: branch?.address ?? '',
+            receiptStart: branch?.receiptStart ?? 1,
             isActive: branch?.isActive ?? true,
             templateIds: branch?.templateIds ?? [],
             defaultTemplateId: branch?.defaultTemplateId ?? null,
@@ -191,6 +192,21 @@ function BranchForm({ branch, templates, onDone }: BranchFormProps) {
                 </FormField>
                 <FormField label="Phone" htmlFor="phone" error={errors.phone?.message}>
                     <Input id="phone" type="tel" {...register('phone')} />
+                </FormField>
+                <FormField
+                    label="Receipt numbers start at"
+                    htmlFor="receiptStart"
+                    error={errors.receiptStart?.message}
+                    hint="To continue a paper receipt book, enter its next number. Numbers only ever go up."
+                    className="sm:col-span-2"
+                >
+                    <Input
+                        id="receiptStart"
+                        type="number"
+                        min={1}
+                        className="sm:max-w-40"
+                        {...register('receiptStart', { valueAsNumber: true })}
+                    />
                 </FormField>
                 <FormField
                     label="Address"

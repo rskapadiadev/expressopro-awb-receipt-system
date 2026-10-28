@@ -18,6 +18,7 @@ const columns = {
     city: branches.city,
     phone: branches.phone,
     address: branches.address,
+    receiptStart: branches.receiptStart,
     isActive: branches.isActive,
 };
 
@@ -27,6 +28,7 @@ const branchValues = (input: BranchInput) => ({
     city: input.city,
     phone: input.phone,
     address: input.address,
+    receiptStart: input.receiptStart,
     isActive: input.isActive,
 });
 

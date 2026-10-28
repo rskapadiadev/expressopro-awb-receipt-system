@@ -1,9 +1,10 @@
-import type { ElementKind, LayoutElement, TemplateLayout } from '@shared/layout';
+import type { ElementKind, LayoutElement, Side, TemplateLayout } from '@shared/layout';
 
 const DEFAULT_SIZE: Record<ElementKind, [w: number, h: number]> = {
     field: [60, 10],
     text: [50, 8],
     awb: [50, 6],
+    receiptNo: [30, 6],
     date: [25, 6],
     branch: [30, 6],
     barcode: [60, 15],
@@ -20,6 +21,32 @@ const DEFAULT_TEXT: Partial<Record<ElementKind, string>> = {
     branch: 'code',
     mark: '✓',
 };
+
+// Elements that print text, so they get font, colour and text-direction controls.
+export const TEXT_KINDS: ElementKind[] = [
+    'field',
+    'text',
+    'awb',
+    'receiptNo',
+    'date',
+    'branch',
+    'mark',
+];
+
+export const toggleBorder = (el: LayoutElement, side: Side) => {
+    const sides = el.border ?? [];
+    return sides.includes(side) ? sides.filter((s) => s !== side) : [...sides, side];
+};
+
+// Moves an element to the end (drawn on top) or the start (drawn underneath) of the layout.
+export function reorder(elements: LayoutElement[], id: string, toFront: boolean) {
+    const el = elements.find((e) => e.id === id);
+    if (!el) {
+        return elements;
+    }
+    const rest = elements.filter((e) => e.id !== id);
+    return toFront ? [...rest, el] : [el, ...rest];
+}
 
 const newId = () => crypto.randomUUID().slice(0, 8);
 

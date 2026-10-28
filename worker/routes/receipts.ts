@@ -41,6 +41,14 @@ async function searchCondition(db: Db, plan: SearchPlan) {
     );
 }
 
+// Next number for the branch, computed inside the INSERT (D1 runs statements one at a time), using
+// the (branch_id, receipt_no) index for max(); the branch's start lets it continue a paper book.
+const nextReceiptNo = (branchId: number) =>
+    sql`(SELECT max(
+        coalesce((SELECT max(${receipts.receiptNo}) FROM ${receipts} WHERE ${receipts.branchId} = ${branchId}), 0),
+        (SELECT ${branches.receiptStart} - 1 FROM ${branches} WHERE ${branches.id} = ${branchId})
+    ) + 1)`;
+
 // Users book under their own branch; admins without one choose a branch per receipt.
 async function bookingBranch(db: Db, branchId: number | null | undefined) {
     if (!branchId) {
@@ -144,10 +152,12 @@ export const receiptRoutes = new Hono<AppEnv>()
                     data,
                     createdBy: me.id,
                     branchId: branch.id,
+                    receiptNo: nextReceiptNo(branch.id),
                 })
                 .returning({
                     id: receipts.id,
                     awbNumber: receipts.awbNumber,
+                    receiptNo: receipts.receiptNo,
                 });
             return row;
         });

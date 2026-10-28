@@ -122,14 +122,18 @@ function ReceiptForm({ template, fields, branch }: ReceiptFormProps) {
 
     const onSubmit = handleSubmit(async (data) => {
         try {
-            const created = await api<Pick<Receipt, 'id' | 'awbNumber'>>('/receipts', 'POST', {
-                templateId: template.id,
-                branchId: branch?.id,
-                data,
-            });
+            const created = await api<Pick<Receipt, 'id' | 'awbNumber' | 'receiptNo'>>(
+                '/receipts',
+                'POST',
+                {
+                    templateId: template.id,
+                    branchId: branch?.id,
+                    data,
+                },
+            );
             await queryClient.invalidateQueries({ queryKey: ['receipts'] });
             void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-            toast.success(`Receipt ${created.awbNumber} created`);
+            toast.success(`Receipt ${created.awbNumber} (No. ${created.receiptNo ?? '—'}) created`);
             await navigate({
                 to: '/receipts/$id',
                 params: { id: created.id },
@@ -186,6 +190,7 @@ function ReceiptForm({ template, fields, branch }: ReceiptFormProps) {
                             fields={fieldMap(fields)}
                             data={values as ReceiptData}
                             awbNumber={`${branch?.code ?? 'XXXX'}0000000`}
+                            receiptNo="Auto"
                             createdAt={now}
                             branch={branch}
                             copy={firstCopy(template.layout)}

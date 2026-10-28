@@ -45,10 +45,10 @@ const fields: [
     ['payment_mode', 'Payment Mode', 'select', true, false, ['Paid', 'To Pay', 'Credit']],
     ['description', 'Description', 'textarea', false, false],
     ['customer_code', 'Customer Code', 'text', false, true],
-    ['receipt_no', 'Receipt No.', 'text', false, true],
     ['mot', 'Mode of Transport', 'select', true, false, ['AIR', 'SRF']],
     ['amount', 'Amount', 'number', false, false],
     ['remarks', 'Remarks', 'text', false, false],
+    ['fasttrack_service', 'Fast Track Service', 'select', false, false, ['Yes', 'No']],
 ];
 
 const layout: TemplateLayout = {

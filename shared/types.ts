@@ -17,6 +17,7 @@ export interface Branch {
     city: string;
     phone: string;
     address: string;
+    receiptStart: number;
     isActive: boolean;
     templateIds: number[];
     defaultTemplateId: number | null;
@@ -40,6 +41,7 @@ export interface Template {
 export interface ReceiptListItem {
     id: number;
     awbNumber: string;
+    receiptNo: number | null;
     templateName: string;
     paper: string;
     status: 'active' | 'void';
@@ -52,6 +54,7 @@ export interface ReceiptListItem {
 export interface Receipt {
     id: number;
     awbNumber: string;
+    receiptNo: number | null;
     status: 'active' | 'void';
     createdBy: string;
     createdAt: number;

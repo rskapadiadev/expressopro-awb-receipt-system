@@ -47,6 +47,7 @@ export const branchInputSchema = z.object({
     city: z.string().trim().max(60),
     phone: z.string().trim().max(20),
     address: z.string().trim().max(300),
+    receiptStart: z.number().int().min(1).max(999_999_999),
     isActive: z.boolean(),
     // Templates this branch's users book with; only the Super Admin may change these.
     templateIds: z.array(id).max(50),

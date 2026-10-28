@@ -14,13 +14,20 @@ const BASE_COLUMNS: Column<ReceiptListItem>[] = [
     {
         header: 'AWB',
         cell: (r) => (
-            <Link
-                to="/receipts/$id"
-                params={{ id: r.id }}
-                className="font-mono font-semibold text-primary underline-offset-4 hover:underline"
-            >
-                {r.awbNumber}
-            </Link>
+            <div className="leading-tight">
+                <Link
+                    to="/receipts/$id"
+                    params={{ id: r.id }}
+                    className="font-mono font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                    {r.awbNumber}
+                </Link>
+                {r.receiptNo !== null && (
+                    <div className="text-xs text-muted-foreground tabular-nums">
+                        No. {r.receiptNo}
+                    </div>
+                )}
+            </div>
         ),
     },
     {

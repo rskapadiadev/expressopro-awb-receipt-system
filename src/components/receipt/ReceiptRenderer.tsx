@@ -8,12 +8,14 @@ import {
 import { COMPANY_NAME, LOGO_URL } from '@/lib/brand';
 import { cn, formatReceiptDate } from '@/lib/utils';
 import { Barcode } from './Barcode';
-import { boxStyle, contentStyle } from './elementStyle';
+import { boxStyle, colorOf, contentStyle } from './elementStyle';
 
 export interface RenderContext {
     fields: Record<string, FieldSnapshot>;
     data: ReceiptData;
     awbNumber: string;
+    // Previews show a placeholder such as "Auto" before the number exists.
+    receiptNo?: number | string | null;
     createdAt: number;
     copy?: string;
     branch?: BranchSnapshot;
@@ -68,6 +70,8 @@ export function ElementContent({ el, ctx }: ElementContentProps) {
             );
         case 'awb':
             return <div>{ctx.awbNumber}</div>;
+        case 'receiptNo':
+            return <div>{ctx.receiptNo ?? ''}</div>;
         case 'date':
             return <div>{formatReceiptDate(ctx.createdAt, el.text ?? 'DD-MM-YY')}</div>;
         case 'branch': {
@@ -83,15 +87,17 @@ export function ElementContent({ el, ctx }: ElementContentProps) {
         case 'mark':
             return <div>{isMarked(el, ctx) ? el.text || '✓' : ''}</div>;
         case 'barcode':
-            return <Barcode value={ctx.awbNumber} />;
+            return <Barcode value={ctx.awbNumber} color={colorOf(el)} />;
         case 'logo':
             return <img src={LOGO_URL} alt={COMPANY_NAME} className={fill} />;
         case 'image':
             return el.text ? <img src={el.text} alt="" className={fill} /> : null;
         case 'line':
-            return <div className="h-full w-full bg-black" />;
+            return <div className="h-full w-full" style={{ backgroundColor: colorOf(el) }} />;
         case 'box':
-            return <div className="h-full w-full border-[0.3mm] border-black" />;
+            return (
+                <div className="h-full w-full" style={{ border: `0.3mm solid ${colorOf(el)}` }} />
+            );
     }
 }
 

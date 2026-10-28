@@ -71,7 +71,7 @@ export const consignmentNote: {
                 bold: true,
             }),
             label('track_l', 'TRACKING LINK', [84, 0, 66, 5]),
-            label('track', 'Pacificexp.net', [84, 5, 66, 9], { fontSize: 8 }),
+            label('track', 'expressopro.in', [84, 5, 66, 9], { fontSize: 8 }),
             label('cn_l', 'CONSIGNMENT NO', [150, 0, 42, 5]),
             cell('awb', 'awb', [150, 5, 42, 9], {
                 fontSize: 10,
@@ -80,10 +80,14 @@ export const consignmentNote: {
             // Customer / service / receipt row
             label('cust_l', 'CUSTOMER CODE', [0, 14, 34, 12]),
             value('customer_code', [34, 14, 34, 12]),
-            label('service', 'FAST TRACK SERVICE', [68, 14, 16, 12], { fontSize: 6 }),
+            label('service', 'FAST TRACK SERVICE', [68, 14, 16, 6.6], { fontSize: 6 }),
+            value('fasttrack_service', [68, 20.6, 16, 5.4]),
             cell('barcode', 'barcode', [84, 14, 66, 12], { padding: 1.5 }),
             label('rno_l', 'RECEIPT NO.', [150, 14, 42, 5]),
-            value('receipt_no', [150, 19, 42, 7]),
+            cell('receipt_no', 'receiptNo', [150, 19, 42, 7], {
+                fontSize: 8,
+                bold: true,
+            }),
             // Sender / receiver
             label('sender_l', 'SENDER :', [0, 26, 18, 7]),
             value('sender_name', [18, 26, 66, 7]),
@@ -100,7 +104,7 @@ export const consignmentNote: {
             label('mot_l', 'M.O.T', [84, 40, 16, 6]),
             label('cash_l', 'CASH', [100, 40, 30, 6]),
             label('credit_l', 'CREDIT', [130, 40, 30, 6]),
-            label('blank_1', '', [160, 40, 32, 6]),
+            label('weight_l', 'WEIGHT', [160, 40, 32, 6]),
             cell('branch', 'branch', [0, 46, 84, 12], {
                 text: 'code',
                 fontSize: 9,
@@ -112,7 +116,7 @@ export const consignmentNote: {
             mark('srf', 'mot', 'SRF', [95, 52, 5, 6]),
             value('amount', [100, 46, 30, 12]),
             mark('credit', 'payment_mode', 'Credit', [130, 46, 30, 12]),
-            label('blank_2', '', [160, 46, 32, 12]),
+            value('weight_kg', [160, 46, 32, 12], { fontSize: 10 }),
             // Declaration / remarks / receiver sign-off
             label('decl_l', 'DECLARATION', [0, 58, 84, 5]),
             label(

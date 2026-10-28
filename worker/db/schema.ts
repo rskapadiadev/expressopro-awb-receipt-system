@@ -1,5 +1,12 @@
 import { sql } from 'drizzle-orm';
-import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import {
+    index,
+    integer,
+    primaryKey,
+    sqliteTable,
+    text,
+    uniqueIndex,
+} from 'drizzle-orm/sqlite-core';
 import type { FieldType, ReceiptData } from '../../shared/fields';
 import type { LayoutSnapshot, TemplateGuide, TemplateLayout } from '../../shared/layout';
 import type { Role } from '../../shared/permissions';
@@ -16,6 +23,8 @@ export const branches = sqliteTable('branches', {
     city: text('city').notNull().default(''),
     phone: text('phone').notNull().default(''),
     address: text('address').notNull().default(''),
+    // Lets a branch continue from its paper receipt book; numbers never go below this.
+    receiptStart: integer('receipt_start').notNull().default(1),
     isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
     createdAt: createdAt(),
 });
@@ -94,9 +103,12 @@ export const receipts = sqliteTable(
             .notNull()
             .references(() => users.id),
         branchId: integer('branch_id').references(() => branches.id),
+        // Sequential per branch; assigned in the insert itself so it can't skip or repeat.
+        receiptNo: integer('receipt_no'),
         createdAt: createdAt(),
     },
     (t) => [
+        uniqueIndex('receipts_branch_receipt_no').on(t.branchId, t.receiptNo),
         index('receipts_created_at_idx').on(t.createdAt),
         index('receipts_created_by_idx').on(t.createdBy, t.createdAt),
         index('receipts_branch_idx').on(t.branchId, t.createdAt),

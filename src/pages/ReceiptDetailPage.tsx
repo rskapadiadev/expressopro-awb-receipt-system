@@ -1,7 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
 import { can } from '@shared/permissions';
-import { ArrowLeft, Ban, Building2, CalendarDays, Copy, Printer, UserRound } from 'lucide-react';
+import {
+    ArrowLeft,
+    Ban,
+    Building2,
+    CalendarDays,
+    Copy,
+    Hash,
+    Printer,
+    UserRound,
+} from 'lucide-react';
 import { ReceiptRenderer } from '@/components/receipt/ReceiptRenderer';
 import { receiptContext } from '@/lib/paper';
 import { Button } from '@/components/ui/button';
@@ -38,6 +47,14 @@ export function ReceiptDetailPage() {
     }
     const copies = receipt.layout.copies?.length ?? 0;
     const meta = [
+        ...(receipt.receiptNo !== null
+            ? [
+                  {
+                      icon: Hash,
+                      text: `Receipt No. ${receipt.receiptNo}`,
+                  },
+              ]
+            : []),
         {
             icon: CalendarDays,
             text: formatDateTime(receipt.createdAt),

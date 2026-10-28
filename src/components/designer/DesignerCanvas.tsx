@@ -1,4 +1,5 @@
 import type { LayoutElement, TemplateGuide, TemplateLayout } from '@shared/layout';
+import { type ReactNode, useLayoutEffect, useRef, useState } from 'react';
 import { Rnd } from 'react-rnd';
 import { ElementBody, type RenderContext } from '@/components/receipt/ReceiptRenderer';
 import { PX_PER_MM } from '@/lib/paper';
@@ -13,12 +14,16 @@ interface DesignerCanvasProps {
     selectedId: string | null;
     onSelect: (id: string | null) => void;
     onChange: (id: string, patch: Partial<LayoutElement>) => void;
+    // Formatting toolbar for the selected element, floated just above it.
+    toolbar?: ReactNode;
 }
 
 const toMm = (px: number) => px / PX_PER_MM;
 
 // Holding Alt/Option while dragging turns snapping off for fine placement.
 const snapEnabled = (e: unknown) => !(e instanceof MouseEvent && e.altKey);
+
+const TOOLBAR_GAP_PX = 40;
 
 export function DesignerCanvas({
     layout,
@@ -28,13 +33,31 @@ export function DesignerCanvas({
     selectedId,
     onSelect,
     onChange,
+    toolbar,
 }: DesignerCanvasProps) {
+    const [moving, setMoving] = useState(false);
+    const toolbarRef = useRef<HTMLDivElement>(null);
+    const [toolbarWidth, setToolbarWidth] = useState(0);
+
     const widthPx = layout.widthMm * PX_PER_MM;
     const heightPx = layout.heightMm * PX_PER_MM;
     const othersThan = (id: string) => layout.elements.filter((o) => o.id !== id);
+    const selected = layout.elements.find((el) => el.id === selectedId);
+    const toPx = (value: number) => value * PX_PER_MM * zoom;
+    // Measured after render so the toolbar can be kept inside the paper's width.
+    useLayoutEffect(() => {
+        setToolbarWidth(toolbarRef.current?.offsetWidth ?? 0);
+    }, [selected, moving]);
+    // Above the element, or below it when it touches the top of the paper.
+    const toolbarTop =
+        selected &&
+        (toPx(selected.y) >= TOOLBAR_GAP_PX
+            ? toPx(selected.y) - TOOLBAR_GAP_PX
+            : toPx(selected.y + selected.h) + 6);
 
     return (
         <div
+            className="relative"
             style={{
                 width: widthPx * zoom,
                 height: heightPx * zoom,
@@ -85,7 +108,14 @@ export function DesignerCanvas({
                         onMouseDown={() => {
                             onSelect(el.id);
                         }}
+                        onDragStart={() => {
+                            setMoving(true);
+                        }}
+                        onResizeStart={() => {
+                            setMoving(true);
+                        }}
                         onDragStop={(e, d) => {
+                            setMoving(false);
                             const raw = {
                                 ...el,
                                 x: toMm(d.x),
@@ -100,6 +130,7 @@ export function DesignerCanvas({
                             });
                         }}
                         onResizeStop={(e, __, ref, ___, pos) => {
+                            setMoving(false);
                             const raw = {
                                 x: toMm(pos.x),
                                 y: toMm(pos.y),
@@ -125,6 +156,21 @@ export function DesignerCanvas({
                     </Rnd>
                 ))}
             </div>
+            {selected && toolbarTop !== undefined && !moving && toolbar && (
+                <div
+                    className="absolute z-20"
+                    ref={toolbarRef}
+                    style={{
+                        left: Math.max(
+                            0,
+                            Math.min(toPx(selected.x), widthPx * zoom - toolbarWidth),
+                        ),
+                        top: toolbarTop,
+                    }}
+                >
+                    {toolbar}
+                </div>
+            )}
         </div>
     );
 }

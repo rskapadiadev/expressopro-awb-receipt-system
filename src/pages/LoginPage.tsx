@@ -60,7 +60,7 @@ export function LoginPage() {
                     <img
                         src={LOGO_MARK_URL}
                         alt=""
-                        className="size-10 rounded-xl ring-2 ring-white/30"
+                        className="size-10 rounded-xl bg-white p-1 shadow-lg ring-2 ring-white/30"
                     />
                     <span className="text-lg font-bold">{COMPANY_NAME}</span>
                 </div>
@@ -90,7 +90,11 @@ export function LoginPage() {
             <main className="flex items-center justify-center p-6 sm:p-10">
                 <div className="w-full max-w-sm animate-fade-up space-y-8">
                     <div className="space-y-2">
-                        <img src={LOGO_URL} alt={COMPANY_NAME} className="h-10 w-auto lg:hidden" />
+                        <img
+                            src={LOGO_URL}
+                            alt={COMPANY_NAME}
+                            className="h-10 w-auto rounded-lg lg:hidden dark:bg-white dark:p-1.5"
+                        />
                         <h1 className="text-3xl font-bold">Welcome back</h1>
                         <p className="text-muted-foreground">
                             Sign in to your account to continue.

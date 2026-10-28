@@ -6,6 +6,7 @@ export const ELEMENT_KINDS = [
     'field',
     'text',
     'awb',
+    'receiptNo',
     'date',
     'branch',
     'barcode',
@@ -21,6 +22,7 @@ export const ELEMENT_LABELS: Record<ElementKind, string> = {
     field: 'Field',
     text: 'Static text',
     awb: 'AWB number',
+    receiptNo: 'Receipt number',
     date: 'Booking date',
     branch: 'Branch',
     barcode: 'Barcode',
@@ -47,6 +49,19 @@ export const ORIENTATION_LABELS: Record<Orientation, string> = {
     stacked: 'Stacked letters',
 };
 
+export const BORDER_STYLES = ['solid', 'dashed', 'dotted'] as const;
+export type BorderStyle = (typeof BORDER_STYLES)[number];
+
+// Defaults used when an element has no styling of its own (also how older templates render).
+export const DEFAULT_STYLE = {
+    color: '#000000',
+    borderColor: '#000000',
+    borderWidth: 0.25,
+    borderStyle: 'solid',
+} as const;
+
+const hexColor = z.string().regex(/^#[0-9a-f]{6}$/i);
+
 export const DATE_FORMATS = ['DD-MM-YY', 'DD/MM/YYYY', 'DD MMM YYYY', 'DD-MM-YYYY HH:mm'] as const;
 export type DateFormat = (typeof DATE_FORMATS)[number];
 
@@ -72,6 +87,13 @@ export const layoutElementSchema = z.object({
     valign: z.enum(VALIGNS).optional(),
     orientation: z.enum(ORIENTATIONS).optional(),
     matchValue: z.string().max(80).optional(),
+    italic: z.boolean().optional(),
+    underline: z.boolean().optional(),
+    color: hexColor.optional(),
+    background: hexColor.optional(),
+    borderColor: hexColor.optional(),
+    borderWidth: z.number().min(0.1).max(3).optional(),
+    borderStyle: z.enum(BORDER_STYLES).optional(),
 });
 export type LayoutElement = z.infer<typeof layoutElementSchema>;
 

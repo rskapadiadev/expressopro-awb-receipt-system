@@ -1,4 +1,4 @@
-// Replace public/logo.svg with the real company logo (keep the name, or update this path).
-export const LOGO_URL = '/logo.svg';
-export const LOGO_MARK_URL = '/logo-mark.svg';
-export const COMPANY_NAME = 'ExpressPro';
+// Company logo (transparent PNG); replace these files to rebrand, keeping the names.
+export const LOGO_URL = '/logo.png';
+export const LOGO_MARK_URL = '/logo-mark.png';
+export const COMPANY_NAME = 'ExpressoPro';

@@ -12,6 +12,7 @@ export const sampleContext = (fields: FieldDefinition[]): RenderContext => ({
         ]),
     ),
     awbNumber: 'SURT0482917',
+    receiptNo: 61,
     createdAt: Date.now(),
     branch: {
         code: 'SURT',

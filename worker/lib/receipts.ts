@@ -26,6 +26,7 @@ export const listQuery = (db: Db) =>
         .select({
             id: receipts.id,
             awbNumber: receipts.awbNumber,
+            receiptNo: receipts.receiptNo,
             templateName: templates.name,
             widthMm: sql<number>`json_extract(${receipts.layoutSnapshot}, '$.widthMm')`,
             heightMm: sql<number>`json_extract(${receipts.layoutSnapshot}, '$.heightMm')`,
@@ -63,6 +64,7 @@ export const detailQuery = (db: Db) =>
         .select({
             id: receipts.id,
             awbNumber: receipts.awbNumber,
+            receiptNo: receipts.receiptNo,
             status: receipts.status,
             createdBy: users.name,
             createdAt: receipts.createdAt,

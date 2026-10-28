@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { fieldKeysOf, type LayoutElement } from '../shared/layout';
+import { consignmentNote } from '../scripts/consignment-note';
+import { fieldKeysOf, layoutElementSchema, type LayoutElement } from '../shared/layout';
 
 const el = (id: string, kind: LayoutElement['kind'], fieldKey?: string): LayoutElement => ({
     id,
@@ -28,5 +29,39 @@ describe('fieldKeysOf', () => {
             ],
         });
         expect(keys).toEqual(['sender_name', 'mot']);
+    });
+});
+
+describe('element styling', () => {
+    it('keeps older elements valid and accepts colours and border styles', () => {
+        expect(layoutElementSchema.safeParse(el('a', 'text')).success).toBe(true);
+        const styled = {
+            ...el('b', 'mark', 'mot'),
+            text: 'FAST',
+            color: '#dc2626',
+            background: '#ffffff',
+            borderColor: '#2563eb',
+            borderWidth: 0.5,
+            borderStyle: 'dashed',
+            italic: true,
+            underline: true,
+        };
+        expect(layoutElementSchema.safeParse(styled).success).toBe(true);
+    });
+
+    it('rejects colours that are not hex', () => {
+        const bad = {
+            ...el('c', 'text'),
+            color: 'red',
+        };
+        expect(layoutElementSchema.safeParse(bad).success).toBe(false);
+    });
+});
+
+describe('seeded consignment note', () => {
+    it('collects fast track service and weight', () => {
+        const keys = fieldKeysOf(consignmentNote.layout);
+        expect(keys).toContain('fasttrack_service');
+        expect(keys).toContain('weight_kg');
     });
 });

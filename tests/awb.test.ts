@@ -22,6 +22,7 @@ describe('branch rules', () => {
             city: '',
             phone: '',
             address: '',
+            receiptStart: 1,
             isActive: true,
             templateIds: [],
             defaultTemplateId: null,
@@ -36,6 +37,13 @@ describe('branch rules', () => {
             branchInputSchema.safeParse({
                 ...base,
                 code: 'SUR',
+            }).success,
+        ).toBe(false);
+        expect(
+            branchInputSchema.safeParse({
+                ...base,
+                code: 'SURT',
+                receiptStart: 0,
             }).success,
         ).toBe(false);
     });

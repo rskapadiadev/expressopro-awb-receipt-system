@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64">
-    <rect width="64" height="64" rx="12" fill="#3b4fd8" />
-    <path d="M18 20h28v6H26v6h16v6H26v6h20v6H18z" fill="#fff" />
-    <text x="76" y="42" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700" fill="#1e2a78">ExpressPro</text>
-</svg>

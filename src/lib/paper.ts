@@ -27,6 +27,7 @@ export const receiptContext = (
     fields: fieldMap(receipt.layout.fields),
     data: receipt.data,
     awbNumber: receipt.awbNumber,
+    receiptNo: receipt.receiptNo,
     createdAt: receipt.createdAt,
     branch: receipt.layout.branch,
     copy,

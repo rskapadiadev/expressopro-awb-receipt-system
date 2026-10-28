@@ -341,7 +341,7 @@ export function AppShell() {
                         className="mr-1 data-[orientation=vertical]:h-4"
                     />
                     <span className="truncate text-sm font-medium">
-                        {active?.label ?? 'ExpressPro'}
+                        {active?.label ?? 'ExpressoPro'}
                     </span>
                     <div className="ml-auto flex items-center gap-1">
                         {pathname !== '/receipts/new' && (

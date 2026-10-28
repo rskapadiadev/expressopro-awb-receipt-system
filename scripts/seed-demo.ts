@@ -94,8 +94,9 @@ function receiptSql(i: number, now: number) {
         payment_mode: i % 5 === 0 ? 'Credit' : 'Paid',
         mot: i % 4 === 0 ? 'SRF' : 'AIR',
         amount: 900 + i * 75,
-        receipt_no: String(60 + i),
         customer_code: `C${1000 + i}`,
+        weight_kg: 0.5 + (i % 8) * 0.75,
+        fasttrack_service: i % 3 === 0 ? 'Yes' : 'No',
     };
     return `INSERT OR IGNORE INTO receipts (awb_number, template_id, layout_snapshot, data, status, created_by, branch_id, created_at)
 SELECT ${q(randomAwb(branch.code))}, t.id,
@@ -118,6 +119,11 @@ SELECT ${q(b.userName)}, ${q(b.user)}, ${hash}, 'user', id FROM branches WHERE c
         ]),
         `INSERT INTO users (name, username, password_hash, role) VALUES ('Demo Admin', 'demo_admin', ${hash}, 'admin');`,
         ...Array.from({ length: Number(args.receipts) }, (_, i) => receiptSql(i, now)),
+        // Demo receipts are inserted out of date order, so number them per branch by booking time.
+        `UPDATE receipts SET receipt_no = n.rn FROM (
+    SELECT id, ROW_NUMBER() OVER (PARTITION BY branch_id ORDER BY created_at, id) AS rn
+    FROM receipts WHERE branch_id IN (${DEMO_BRANCHES})
+) AS n WHERE receipts.id = n.id;`,
     ];
 }
 

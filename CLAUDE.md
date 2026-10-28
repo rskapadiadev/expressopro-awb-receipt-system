@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This is the ExpressPro AWB receipt system: courier consignment receipts with dynamic fields, a drag-and-drop template designer, branch-based AWB numbers, and bulk printing. [README.md](README.md) covers setup and features. This file covers what you need to know before changing code.
+This is the ExpressoPro AWB receipt system: courier consignment receipts with dynamic fields, a drag-and-drop template designer, branch-based AWB numbers, and bulk printing. [README.md](README.md) covers setup and features. This file covers what you need to know before changing code.
 
 ## Hard constraints
 
@@ -25,6 +25,7 @@ npm run db:generate          # after editing worker/db/schema.ts
 npm run db:migrate:local     # apply migrations to local D1
 npm run db:seed:local -- --password '...'   # super admin, starter fields, sample branch + templates
 npm run check:size           # build + Worker upload size
+npm run db:link:remote       # find/create the production D1 and write its id into the DB binding
 npm run db:demo:local        # demo branches DEM1/DEM2, demo_* logins, 40 receipts (re-run resets)
 npm run db:demo:clean:local  # removes only demo data; *:remote variants need `-- --confirm`
 ```
@@ -53,6 +54,7 @@ Key concepts:
     - There's no items table.
 - **Branches.**
     - Each branch has a 4-character unique `code`, and AWB numbers are that code plus 7 random digits ([shared/awb.ts](shared/awb.ts)). The UNIQUE index catches collisions and `withUniqueAwb` draws again.
+    - Receipt numbers (`receipts.receipt_no`) count up separately per branch. `nextReceiptNo` assigns the number inside the INSERT using the unique `(branch_id, receipt_no)` index. A branch's `receipt_start` lets it continue a paper book: the next number is `max(highest + 1, receipt_start)`. The `receiptNo` element shows it on templates.
     - Franchise users must have a branch and always book under it. Admins with no branch pick one for each receipt.
     - Templates are assigned **per branch** in `branch_templates` (one default each), not per user.
 - **Printing.** There are two modes: `single`, one receipt per page for roll or label printers, and `sheet`, tiled on A4 and similar. Each template has a default mode, and each browser can override it, stored in localStorage. Each receipt prints once per copy name; `{copy}` in a text element is replaced with the copy's name. A print job can only use one page size, so mixed sizes are split into groups.
@@ -84,6 +86,7 @@ Key concepts:
 - **D1 `batch()` with joins** mixes up columns that share a name, such as `templates.name` and `users.name`. Use `Promise.all` for reads with joins. `batch()` is fine for writes.
 - **Animations must not hold a `transform`.** `animate-fade-up` uses `backwards` fill mode. A transform left on an ancestor turns `position: fixed` children (the bulk-print bar) into children positioned against that ancestor.
 - **JsBarcode** writes sizes like `"268px"`. Parse them to numbers before building an SVG `viewBox`.
+- **Never use `wrangler d1 create` on its own.** It appends a second `"remote": true` binding, which makes local dev hit production, and leaves `DB` on a stale ID ("database could not be found"). Use `npm run db:link:remote`. Changing the database ID also changes which local `.wrangler/state` file is used, so local data looks empty until it's copied over or re-seeded.
 - **Mismatched local runtimes.** Running `wrangler d1 execute` against local state created by a newer Vite-plugin runtime crashes. Keep `wrangler` up to date and use Node 22.
 - **D1 reads are the real free-tier limit (5M rows/day). Never write a query that reads every receipt.**
     - All-time counts come from `receipt_totals`, kept up to date by SQL triggers in migration `0006`, so every insert and delete path updates it automatically.

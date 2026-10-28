@@ -1,4 +1,4 @@
-# ExpressPro AWB Receipt System
+# ExpressoPro AWB Receipt System
 
 AWB receipt system with dynamic fields, a drag-and-drop template designer and bulk printing. It runs entirely on the Cloudflare free tier:
 
@@ -89,12 +89,12 @@ A pre-commit hook (husky + lint-staged) runs ESLint and Prettier on staged files
 ## Deploying to Cloudflare (free)
 
 1. `npx wrangler login`
-2. `npx wrangler d1 create expresspro-awb`, then copy the printed `database_id` into [wrangler.jsonc](wrangler.jsonc).
+2. `npm run db:link:remote`. This finds the `expressopro-awb` database (or creates it) and writes its ID into [wrangler.jsonc](wrangler.jsonc). Don't use `wrangler d1 create` directly: it adds a duplicate `"remote": true` entry and leaves `DB` on the old ID.
 3. `npm run db:migrate:remote`
 4. `npm run db:seed:remote -- --password 'ChooseAStrongPassword'`
 5. `npm run deploy`
 
-The app is then live at `https://expresspro-awb.<account>.workers.dev`.
+The app is then live at `https://expressopro-awb.<account>.workers.dev`.
 
 ### Custom subdomain (free)
 
@@ -107,6 +107,7 @@ The app is then live at `https://expresspro-awb.<account>.workers.dev`.
 
 - **Branches** (`/admin/branches`, Super Admin and Admin):
     - Each branch has a unique 4-character code, which is the prefix of its AWB numbers.
+    - Receipt numbers count up automatically per branch (1, 2, 3…). Set **Receipt numbers start at** on a branch to continue from a paper receipt book.
     - Every franchise user belongs to one branch, always books under it, and uses that branch's templates.
     - The Super Admin assigns templates per branch (with one default) in the branch form, so new users of a branch need no template setup.
     - Admins and the Super Admin can have no branch. They then pick a branch for each receipt.
@@ -115,10 +116,14 @@ The app is then live at `https://expresspro-awb.<account>.workers.dev`.
     - **Elements**: fields, static text, AWB number, booking date, branch, barcode (Code 128), tick mark, company logo, custom image, line and box.
     - **Table cells**: any element can have borders on any side, padding and vertical alignment, so a grid-style C-Note is built from one element per cell.
     - **Text direction**: horizontal, vertical, or stacked letters (e.g. "SHIPPER COPY" down the side).
-    - **Tick mark**: prints ✓, X and similar when a field has a given value. For example, ✓ next to AIR when Mode of Transport is AIR.
+    - **Tick mark**: prints ✓, X and similar when a field has a given value. For example, ✓ next to AIR when Mode of Transport is AIR. Choose **Custom text…** to print your own text instead (e.g. `FAST`).
+    - **Styling**: every element can have a text colour, fill colour, italic and underline, plus a border width, line style (solid, dashed, dotted) and colour. Elements without styling print black, as before.
     - **Copies**: list copy names (e.g. Shipper / Consignee / Office). Each receipt then prints once per copy. Put `{copy}` in a static text element to show the copy name.
     - **Tracing guide**: upload a photo or screenshot of an existing paper receipt as a faded background and place elements on top of it. It's never printed or copied into receipts.
 - **Designer shortcuts**:
+    - Clicking an element shows a toolbar above it on the canvas: border sides, font size, bold / italic / underline, alignment, colours, bring to front / send to back, duplicate and remove. Click the empty area around the paper to go back to the template settings.
+    - The search box at the top of the left pane filters fields and elements.
+    - ⌘B / ⌘I / ⌘U (Ctrl on Windows) toggle bold, italic and underline. Esc deselects.
     - Drag and resize elements with the mouse. Edges snap to other elements and the paper edge; hold Alt/Option to place freely.
     - ⌘C / ⌘V (Ctrl+C / Ctrl+V) copy and paste an element, and ⌘D (Ctrl+D) duplicates it.
     - Arrow keys nudge by 1 mm (Shift for 5 mm). Delete removes the selected element.

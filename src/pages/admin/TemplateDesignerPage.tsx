@@ -372,6 +372,12 @@ function Designer({ template }: { template: Template }) {
                         fields={fields}
                         placedKeys={placedKeys}
                         onAdd={addElement}
+                        onLocate={(fieldKey) => {
+                            const el = layout.elements.find((e) => e.fieldKey === fieldKey);
+                            if (el) {
+                                setSelectedId(el.id);
+                            }
+                        }}
                         onNewField={
                             canManageFields
                                 ? () => {

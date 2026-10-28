@@ -2,6 +2,7 @@ import { type FieldSnapshot, formatFieldValue, type ReceiptData } from '@shared/
 import {
     type BranchSnapshot,
     COPY_PLACEHOLDER,
+    ELEMENT_LABELS,
     type LayoutElement,
     type TemplateLayout,
 } from '@shared/layout';
@@ -42,6 +43,9 @@ const isMarked = (el: LayoutElement, ctx: RenderContext) => {
 
 const fill = 'h-full w-full object-contain';
 
+// Template previews show automatic values by name, like fields, so they don't look like static text.
+const placeholder = (el: LayoutElement) => `<${ELEMENT_LABELS[el.kind]}>`;
+
 export function ElementContent({ el, ctx }: ElementContentProps) {
     switch (el.kind) {
         case 'field': {
@@ -57,7 +61,10 @@ export function ElementContent({ el, ctx }: ElementContentProps) {
                         </div>
                     )}
                     <div className="whitespace-pre-wrap break-words">
-                        {formatFieldValue(field.type, ctx.data[field.key])}
+                        {/* Template previews name the field instead of faking a value. */}
+                        {ctx.preview
+                            ? `<${field.label}>`
+                            : formatFieldValue(field.type, ctx.data[field.key])}
                     </div>
                 </>
             );
@@ -69,12 +76,20 @@ export function ElementContent({ el, ctx }: ElementContentProps) {
                 </div>
             );
         case 'awb':
-            return <div>{ctx.awbNumber}</div>;
+            return <div>{ctx.preview ? placeholder(el) : ctx.awbNumber}</div>;
         case 'receiptNo':
-            return <div>{ctx.receiptNo ?? ''}</div>;
-        case 'date':
-            return <div>{formatReceiptDate(ctx.createdAt, el.text ?? 'DD-MM-YY')}</div>;
+            return <div>{ctx.preview ? placeholder(el) : (ctx.receiptNo ?? '')}</div>;
+        case 'date': {
+            const format = el.text ?? 'DD-MM-YY';
+            // The format (e.g. <DD-MM-YY>) is shown instead of the name so the cell keeps its real width.
+            return (
+                <div>{ctx.preview ? `<${format}>` : formatReceiptDate(ctx.createdAt, format)}</div>
+            );
+        }
         case 'branch': {
+            if (ctx.preview) {
+                return <div>{placeholder(el)}</div>;
+            }
             const { code = '', name = '' } = ctx.branch ?? {};
             const display = {
                 code,

@@ -33,6 +33,42 @@ export const ELEMENT_LABELS: Record<ElementKind, string> = {
     box: 'Box',
 };
 
+// Where an element's printed value comes from, so the designer can say so.
+export type ElementSource = 'form' | 'auto' | 'static';
+export const ELEMENT_SOURCE: Record<ElementKind, ElementSource> = {
+    field: 'form',
+    mark: 'form',
+    awb: 'auto',
+    receiptNo: 'auto',
+    date: 'auto',
+    branch: 'auto',
+    barcode: 'auto',
+    text: 'static',
+    logo: 'static',
+    image: 'static',
+    line: 'static',
+    box: 'static',
+};
+export const SOURCE_LABELS: Record<ElementSource, string> = {
+    form: 'Form field',
+    auto: 'Automatic',
+    static: 'Static',
+};
+export const ELEMENT_HINTS: Record<ElementKind, string> = {
+    field: 'Typed in on the booking form; changes on every receipt.',
+    mark: 'Prints the mark when the chosen form field has the matching value.',
+    awb: 'Generated when the receipt is booked: branch code + 7 random digits.',
+    receiptNo: "Next number in the branch's receipt sequence, assigned when booked.",
+    date: 'The date the receipt is booked.',
+    branch: 'The branch the receipt is booked under.',
+    barcode: "Code 128 barcode of the receipt's AWB number.",
+    text: 'Printed exactly as typed on every receipt.',
+    logo: 'The company logo.',
+    image: 'An image you upload; the same on every receipt.',
+    line: 'A drawn line.',
+    box: 'A drawn box.',
+};
+
 const mm = z.number().min(0).max(2000);
 
 export const SIDES = ['top', 'right', 'bottom', 'left'] as const;

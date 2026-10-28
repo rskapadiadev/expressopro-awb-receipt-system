@@ -6,7 +6,10 @@ import {
     COPY_PLACEHOLDER,
     DATE_FORMATS,
     DEFAULT_STYLE,
+    ELEMENT_HINTS,
     ELEMENT_LABELS,
+    ELEMENT_SOURCE,
+    type ElementSource,
     type LayoutElement,
     ORIENTATION_LABELS,
     type Orientation,
@@ -15,6 +18,7 @@ import {
     printSettingsOf,
     SIDES,
     type Side,
+    SOURCE_LABELS,
     type TemplateGuide,
     type TemplateLayout,
 } from '@shared/layout';
@@ -28,6 +32,7 @@ import {
 import { Copy, Trash2 } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/card';
 import { Checkbox, FormField, Input, Label, Select, Textarea } from '@/components/ui/form';
 import { readImage } from '@/lib/image';
 import { ColorField } from './ColorPicker';
@@ -269,6 +274,12 @@ const SIDE_LABELS: Record<Side, string> = {
     left: 'Left',
 };
 
+const SOURCE_TONES = {
+    form: 'blue',
+    auto: 'green',
+    static: 'slate',
+} as const satisfies Record<ElementSource, string>;
+
 const BOX_KEYS = ['x', 'y', 'w', 'h'] as const;
 const MARK_FIELD_TYPES: FieldType[] = ['select', 'checkbox', 'text'];
 
@@ -296,6 +307,12 @@ export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove 
 
     return (
         <Section title={el.kind === 'field' ? (field?.label ?? 'Field') : ELEMENT_LABELS[el.kind]}>
+            <div className="space-y-1.5 rounded-md bg-muted/60 px-3 py-2">
+                <Badge tone={SOURCE_TONES[ELEMENT_SOURCE[el.kind]]} dot>
+                    {SOURCE_LABELS[ELEMENT_SOURCE[el.kind]]}
+                </Badge>
+                <p className="text-xs text-muted-foreground">{ELEMENT_HINTS[el.kind]}</p>
+            </div>
             <div className="grid grid-cols-2 gap-2">
                 {BOX_KEYS.map((key) => (
                     <NumberInput
@@ -310,6 +327,21 @@ export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove 
                 ))}
             </div>
 
+            {el.kind === 'field' && (
+                <SelectField
+                    label="Field"
+                    value={el.fieldKey ?? ''}
+                    options={[
+                        ...(field ? [] : [['', 'Choose a field…'] as const]),
+                        ...fields
+                            .filter((f) => f.isActive || f.key === el.fieldKey)
+                            .map((f) => [f.key, f.label] as const),
+                    ]}
+                    onChange={(fieldKey) => {
+                        onChange({ fieldKey });
+                    }}
+                />
+            )}
             {el.kind === 'text' && (
                 <FormField
                     label="Text"

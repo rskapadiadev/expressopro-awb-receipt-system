@@ -6,6 +6,8 @@ import {
     type LayoutElement,
     type TemplateLayout,
 } from '@shared/layout';
+import { nextSortOrder } from '@shared/fields';
+import { can } from '@shared/permissions';
 import type { TemplateInput } from '@shared/schemas';
 import type { Template } from '@shared/types';
 import { ArrowLeft, Minus, Plus, Redo2, Save, Undo2 } from 'lucide-react';
@@ -14,6 +16,8 @@ import { DesignerCanvas } from '@/components/designer/DesignerCanvas';
 import { cloneElement, newElement, reorder, TEXT_KINDS } from '@/components/designer/elements';
 import { ElementToolbar } from '@/components/designer/ElementToolbar';
 import { Palette } from '@/components/designer/Palette';
+import { EditorDialog } from '@/components/EditorDialog';
+import { FieldForm } from '@/components/fields/FieldForm';
 import {
     CopiesPanel,
     ElementProperties,
@@ -24,7 +28,7 @@ import {
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Checkbox, ErrorBanner, Input, Label } from '@/components/ui/form';
 import { historyReducer, initHistory } from '@/lib/history';
-import { fieldsQuery, templateQuery, useSave } from '@/lib/queries';
+import { fieldsQuery, templateQuery, useMe, useSave } from '@/lib/queries';
 import { sampleContext } from '@/lib/sample';
 
 const route = getRouteApi('/authed/admin/templates/$id/design');
@@ -71,6 +75,8 @@ function Designer({ template }: { template: Template }) {
     const [saved, setSaved] = useState(template);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [zoom, setZoom] = useState(1);
+    const [creatingField, setCreatingField] = useState(false);
+    const canManageFields = can(useMe().role, 'fields.manage');
     const clipboard = useRef<LayoutElement | null>(null);
     const dirty =
         layout !== saved.layout ||
@@ -101,6 +107,16 @@ function Designer({ template }: { template: Template }) {
         });
     };
     const updateElement = (elId: string, patch: Partial<LayoutElement>, mergeKey?: string) => {
+        const current = layout.elements.find((el) => el.id === elId);
+        // A plain click ends a zero-distance "drag"; skip it so it isn't an unsaved change or undo step.
+        if (
+            !current ||
+            Object.entries(patch).every(
+                ([key, value]) => current[key as keyof LayoutElement] === value,
+            )
+        ) {
+            return;
+        }
         edit(
             (prev) => ({
                 ...prev,
@@ -329,9 +345,41 @@ function Designer({ template }: { template: Template }) {
                     <ErrorBanner message={save.error.message} />
                 </div>
             )}
+            <EditorDialog
+                editing={creatingField ? 'new' : null}
+                noun="field"
+                onClose={() => {
+                    setCreatingField(false);
+                }}
+            >
+                {() => (
+                    <FieldForm
+                        field={null}
+                        nextOrder={nextSortOrder(fields)}
+                        onDone={(key) => {
+                            setCreatingField(false);
+                            // A new field is placed on the canvas straight away, ready to position.
+                            if (key) {
+                                addElement('field', key);
+                            }
+                        }}
+                    />
+                )}
+            </EditorDialog>
             <div className="flex min-h-0 flex-1 flex-col md:flex-row">
                 <aside className="max-h-48 shrink-0 overflow-y-auto border-b bg-sidebar p-2 md:max-h-none md:w-56 md:border-r md:border-b-0">
-                    <Palette fields={fields} placedKeys={placedKeys} onAdd={addElement} />
+                    <Palette
+                        fields={fields}
+                        placedKeys={placedKeys}
+                        onAdd={addElement}
+                        onNewField={
+                            canManageFields
+                                ? () => {
+                                      setCreatingField(true);
+                                  }
+                                : undefined
+                        }
+                    />
                 </aside>
                 {/* Clicking the empty area around the paper deselects, bringing back the template settings. */}
                 <main

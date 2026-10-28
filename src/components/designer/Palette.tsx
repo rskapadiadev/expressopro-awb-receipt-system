@@ -9,11 +9,13 @@ interface PaletteProps {
     fields: FieldDefinition[];
     placedKeys: ReadonlySet<string>;
     onAdd: (kind: ElementKind, fieldKey?: string) => void;
+    // Shown only to roles that can edit the field library.
+    onNewField?: () => void;
 }
 
 const STATIC_KINDS = ELEMENT_KINDS.filter((k) => k !== 'field');
 
-export function Palette({ fields, placedKeys, onAdd }: PaletteProps) {
+export function Palette({ fields, placedKeys, onAdd, onNewField }: PaletteProps) {
     const [query, setQuery] = useState('');
     const term = query.trim().toLowerCase();
     const matches = (...texts: string[]) => texts.some((t) => t.toLowerCase().includes(term));
@@ -49,9 +51,21 @@ export function Palette({ fields, placedKeys, onAdd }: PaletteProps) {
                 />
             </div>
             <section>
-                <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-muted-foreground">
-                    Fields
-                </h3>
+                <div className="mb-1 flex items-center justify-between px-2">
+                    <h3 className="text-xs font-semibold uppercase text-muted-foreground">
+                        Fields
+                    </h3>
+                    {onNewField && (
+                        <Button
+                            variant="ghost"
+                            size="xs"
+                            className="text-primary"
+                            onClick={onNewField}
+                        >
+                            <Plus /> New field
+                        </Button>
+                    )}
+                </div>
                 {available.length === 0 ? (
                     <p className="px-2 text-xs text-muted-foreground">
                         {term ? 'No matching fields' : 'All fields placed'}

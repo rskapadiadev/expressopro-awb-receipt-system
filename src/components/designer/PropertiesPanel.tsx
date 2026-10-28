@@ -608,11 +608,12 @@ export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove 
                 </div>
             </div>
 
-            <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={onDuplicate}>
+            {/* Pinned to the bottom of the scrolling panel (offsets cancel the panel's p-4). */}
+            <div className="sticky -bottom-4 z-10 -mx-4 -mb-4 flex gap-2 border-t bg-sidebar/95 px-4 py-3 backdrop-blur">
+                <Button variant="outline" size="sm" className="flex-1" onClick={onDuplicate}>
                     <Copy className="size-4" /> Duplicate
                 </Button>
-                <Button variant="destructive" size="sm" onClick={onRemove}>
+                <Button variant="destructive" size="sm" className="flex-1" onClick={onRemove}>
                     <Trash2 className="size-4" /> Remove
                 </Button>
             </div>

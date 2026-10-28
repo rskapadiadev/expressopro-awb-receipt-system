@@ -114,3 +114,7 @@ export function buildDataSchema(fields: FieldDefinition[]) {
 export function formatFieldValue(type: FieldType, value: FieldValue | undefined): string {
     return value === undefined ? '' : FIELD_REGISTRY[type].format(value);
 }
+
+// New fields go to the end of the entry form.
+export const nextSortOrder = (fields: FieldDefinition[]) =>
+    Math.max(0, ...fields.map((f) => f.sortOrder)) + 10;

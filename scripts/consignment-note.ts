@@ -116,7 +116,7 @@ export const consignmentNote: {
             mark('srf', 'mot', 'SRF', [95, 52, 5, 6]),
             value('amount', [100, 46, 30, 12]),
             mark('credit', 'payment_mode', 'Credit', [130, 46, 30, 12]),
-            value('weight_kg', [160, 46, 32, 12], { fontSize: 10 }),
+            value('weight_kg', [160, 46, 32, 12]),
             // Declaration / remarks / receiver sign-off
             label('decl_l', 'DECLARATION', [0, 58, 84, 5]),
             label(

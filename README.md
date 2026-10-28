@@ -37,6 +37,8 @@ The seed command creates:
 
 Run the seed with `--username <name>` to choose a different login name.
 
+The seed only creates templates that don't exist yet. Add `--reset-templates` to overwrite the Standard A5 and Consignment Note templates with the versions in [scripts/](scripts/), which also removes their tracing guides. Existing receipts don't change, because each one keeps its own copy of the layout.
+
 ## Demo data
 
 Use this to show the client a populated system: dashboard chart, receipts and multiple branches.

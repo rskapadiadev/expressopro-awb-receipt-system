@@ -71,7 +71,11 @@ export const consignmentNote: {
                 bold: true,
             }),
             label('track_l', 'TRACKING LINK', [84, 0, 66, 5]),
-            label('track', 'expressopro.in', [84, 5, 66, 9], { fontSize: 8 }),
+            cell('track', 'company', [84, 5, 66, 9], {
+                text: 'trackingLink',
+                fontSize: 8,
+                bold: true,
+            }),
             label('cn_l', 'CONSIGNMENT NO', [150, 0, 42, 5]),
             cell('awb', 'awb', [150, 5, 42, 9], {
                 fontSize: 10,
@@ -102,9 +106,10 @@ export const consignmentNote: {
             // Branch / transport / payment
             label('branch_l', 'BRANCH CODE', [0, 40, 84, 6]),
             label('mot_l', 'M.O.T', [84, 40, 16, 6]),
-            label('cash_l', 'CASH', [100, 40, 30, 6]),
-            label('credit_l', 'CREDIT', [130, 40, 30, 6]),
-            label('weight_l', 'WEIGHT', [160, 40, 32, 6]),
+            label('cash_l', 'CASH', [100, 40, 23, 6]),
+            label('credit_l', 'CREDIT', [123, 40, 23, 6]),
+            label('boxes_l', 'NO. OF BOX', [146, 40, 23, 6]),
+            label('weight_l', 'WEIGHT', [169, 40, 23, 6]),
             cell('branch', 'branch', [0, 46, 84, 12], {
                 text: 'code',
                 fontSize: 9,
@@ -114,9 +119,10 @@ export const consignmentNote: {
             mark('air', 'mot', 'AIR', [95, 46, 5, 6]),
             label('srf_l', 'SRF :', [84, 52, 11, 6], { align: 'right' }),
             mark('srf', 'mot', 'SRF', [95, 52, 5, 6]),
-            value('amount', [100, 46, 30, 12]),
-            mark('credit', 'payment_mode', 'Credit', [130, 46, 30, 12]),
-            value('weight_kg', [160, 46, 32, 12]),
+            value('amount', [100, 46, 23, 12]),
+            mark('credit', 'payment_mode', 'Credit', [123, 46, 23, 12]),
+            value('no_of_box', [146, 46, 23, 12]),
+            value('weight_kg', [169, 46, 23, 12]),
             // Declaration / remarks / receiver sign-off
             label('decl_l', 'DECLARATION', [0, 58, 84, 5]),
             label(
@@ -135,10 +141,11 @@ export const consignmentNote: {
             label('rdate_l', 'DATE :', [84, 72, 16, 12]),
             label('rdate', '', [100, 72, 92, 12]),
             // Footer and the vertical copy name down the right edge
-            label('footer', 'track on:- https://expressopro.in/', [0, 84, 192, 8], { fontSize: 7 }),
-            label('copy', '{copy}', [192, 0, 8, 92], {
+            label('footer', 'track on:- {tracking_link}', [0, 84, 192, 8]),
+            cell('copy', 'copy', [192, 0, 8, 92], {
                 orientation: 'stacked',
                 fontSize: 6.5,
+                bold: true,
             }),
         ],
     },

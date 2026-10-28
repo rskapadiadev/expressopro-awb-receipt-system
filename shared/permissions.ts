@@ -11,6 +11,7 @@ const MATRIX = {
     'fields.manage': ['super_admin'],
     'templates.manage': ['super_admin'],
     'templates.assign': ['super_admin'],
+    'company.manage': ['super_admin'],
     'users.manage': ['super_admin', 'admin'],
     'branches.manage': ['super_admin', 'admin'],
     'receipts.viewAll': ['super_admin', 'admin'],

@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { can, type Permission, ROLE_LABELS } from '@shared/permissions';
 import {
+    Briefcase,
     Building2,
     ChevronsUpDown,
     FileText,
@@ -104,6 +105,12 @@ const ADMIN: NavItem[] = [
         label: 'Templates',
         icon: LayoutTemplate,
         permission: 'templates.manage',
+    },
+    {
+        to: '/admin/company',
+        label: 'Company',
+        icon: Briefcase,
+        permission: 'company.manage',
     },
 ];
 

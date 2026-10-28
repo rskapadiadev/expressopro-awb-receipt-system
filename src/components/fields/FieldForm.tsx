@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FIELD_REGISTRY, FIELD_TYPES, type FieldDefinition } from '@shared/fields';
 import { type FieldInput, fieldInputSchema } from '@shared/schemas';
+import { Trash2 } from 'lucide-react';
 import { type ChangeEvent, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -14,11 +15,14 @@ import {
     Textarea,
 } from '@/components/ui/form';
 import { applyServerErrors } from '@/lib/api';
-import { useSave } from '@/lib/queries';
+import { cn } from '@/lib/utils';
+import { useRemove, useSave } from '@/lib/queries';
 
 interface FieldFormProps {
     field: FieldDefinition | null;
     nextOrder: number;
+    // Templates that collect this field; it can only be deleted when there are none.
+    usedBy?: string[];
     // Receives the saved field's key, or nothing when cancelled.
     onDone: (key?: string) => void;
 }
@@ -31,8 +35,10 @@ const keyFromLabel = (label: string) =>
         .replace(/^_+|_+$/g, '')
         .slice(0, 60);
 
-export function FieldForm({ field, nextOrder, onDone }: FieldFormProps) {
+export function FieldForm({ field, nextOrder, usedBy = [], onDone }: FieldFormProps) {
     const save = useSave<FieldInput>('fields', ['fields', 'template']);
+    const remove = useRemove('fields', ['fields']);
+    const [confirming, setConfirming] = useState(false);
     // Raw text kept separately so blank lines survive while typing.
     const [optionsText, setOptionsText] = useState(field?.options.join('\n') ?? '');
     const {
@@ -148,7 +154,36 @@ export function FieldForm({ field, nextOrder, onDone }: FieldFormProps) {
                     <Checkbox {...register('isActive')} /> Active
                 </Label>
             </div>
-            <div className="flex justify-end gap-2">
+            {field && usedBy.length > 0 && (
+                <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+                    Used in {usedBy.join(', ')}. Remove it from{' '}
+                    {usedBy.length === 1 ? 'that template' : 'those templates'} to delete it, or
+                    untick Active to hide it from new templates.
+                </p>
+            )}
+            {remove.error && <ErrorBanner message={remove.error.message} />}
+            <div className="flex flex-wrap justify-end gap-2">
+                {field && usedBy.length === 0 && (
+                    <Button
+                        variant={confirming ? 'destructive' : 'ghost'}
+                        className={cn('mr-auto', !confirming && 'text-destructive')}
+                        disabled={remove.isPending}
+                        onClick={() => {
+                            if (!confirming) {
+                                setConfirming(true);
+                                return;
+                            }
+                            remove.mutate(field.id, {
+                                onSuccess: () => {
+                                    onDone();
+                                },
+                            });
+                        }}
+                    >
+                        <Trash2 className="size-4" />
+                        {confirming ? 'Click again to delete' : 'Delete field'}
+                    </Button>
+                )}
                 <Button
                     variant="outline"
                     onClick={() => {

@@ -57,6 +57,7 @@ Key concepts:
     - Receipt numbers (`receipts.receipt_no`) count up separately per branch. `nextReceiptNo` assigns the number inside the INSERT using the unique `(branch_id, receipt_no)` index. A branch's `receipt_start` lets it continue a paper book: the next number is `max(highest + 1, receipt_start)`. The `receiptNo` element shows it on templates.
     - Franchise users must have a branch and always book under it. Admins with no branch pick one for each receipt.
     - Templates are assigned **per branch** in `branch_templates` (one default each), not per user.
+- **Company profile.** A single `company` row (id 1), edited by the Super Admin and frozen into `layout_snapshot.company` at booking. It's printed by the `company` element (`text` holds which detail) and by placeholders like `{tracking_link}` in static text ([shared/company.ts](shared/company.ts)).
 - **Printing.** There are two modes: `single`, one receipt per page for roll or label printers, and `sheet`, tiled on A4 and similar. Each template has a default mode, and each browser can override it, stored in localStorage. Each receipt prints once per copy name; `{copy}` in a text element is replaced with the copy's name. A print job can only use one page size, so mixed sizes are split into groups.
 - **Auth.** PBKDF2 passwords, with the iteration count tuned for the free-tier CPU budget. Sessions are httpOnly cookies backed by D1. An account locks after 5 failed logins, and POSTs from other sites are blocked. Users change their own password from the user menu (`POST /api/auth/password`), which signs out their other sessions. Admins reset other people's passwords from the Users page.
 
@@ -93,4 +94,5 @@ Key concepts:
     - Dashboard figures use one indexed date-range query.
     - Search goes through `searchPlan` ([worker/lib/search.ts](worker/lib/search.ts)): AWB-like input uses the unique index, and text search is limited to `SEARCH_WINDOW_DAYS` unless a From date is set.
     - Check new queries with `EXPLAIN QUERY PLAN`. You want `SEARCH … USING INDEX`, not `SCAN receipts`.
+- **`Button` defaults to `type="button"`.** Mark form submit buttons `type="submit"` explicitly; an untyped button inside a form would otherwise submit it (Cancel used to save).
 - **Data scope.** API routes must always apply `scopeFor(me)`, which limits `user` to their own receipts. UI hiding isn't enough.

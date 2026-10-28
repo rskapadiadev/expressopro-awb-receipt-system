@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { FIELD_REGISTRY, type FieldDefinition, nextSortOrder } from '@shared/fields';
+import { templatesUsing } from '@shared/layout';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { type Editing, EditorDialog } from '@/components/EditorDialog';
@@ -8,10 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Badge, Card, PageHeader } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/table';
 import { editColumn } from '@/lib/columns';
-import { fieldsQuery } from '@/lib/queries';
+import { fieldsQuery, templatesQuery } from '@/lib/queries';
 
 export function FieldsPage() {
     const { data: fields = [], isPending } = useQuery(fieldsQuery);
+    const { data: templates } = useQuery(templatesQuery(true));
+    const usedBy = (key: string) => templatesUsing(templates?.items ?? [], key);
     const [editing, setEditing] = useState<Editing<FieldDefinition>>(null);
 
     return (
@@ -51,6 +54,22 @@ export function FieldsPage() {
                             cell: (f) => FIELD_REGISTRY[f.type].label,
                         },
                         {
+                            header: 'Used in',
+                            className: 'hidden md:table-cell',
+                            cell: (f) => {
+                                const names = usedBy(f.key);
+                                return names.length ? (
+                                    <span title={names.join(', ')}>
+                                        <Badge tone="blue">
+                                            {names.length} template{names.length > 1 && 's'}
+                                        </Badge>
+                                    </span>
+                                ) : (
+                                    <span className="text-xs text-muted-foreground">Not used</span>
+                                );
+                            },
+                        },
+                        {
                             header: 'Flags',
                             className: 'hidden sm:table-cell',
                             cell: (f) => (
@@ -76,6 +95,7 @@ export function FieldsPage() {
                     <FieldForm
                         field={item}
                         nextOrder={nextSortOrder(fields)}
+                        usedBy={item ? usedBy(item.key) : []}
                         onDone={() => {
                             setEditing(null);
                         }}

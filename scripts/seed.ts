@@ -53,6 +53,7 @@ const fields: [
     ['amount', 'Amount', 'number', false, false],
     ['remarks', 'Remarks', 'text', false, false],
     ['fasttrack_service', 'Fast Track Service', 'select', false, false, ['Yes', 'No']],
+    ['no_of_box', 'No. of Box', 'number', false, false],
 ];
 
 const password = args.password ?? randomToken().slice(0, 14);
@@ -71,6 +72,8 @@ const sql = [
                   `UPDATE templates SET layout = ${q(JSON.stringify(t.layout))}, guide = NULL, version = version + 1 WHERE name = ${q(t.name)};`,
           )
         : []),
+    // Fills the company profile only while it is still empty, so edits made in the app are kept.
+    `UPDATE company SET name = 'ExpressoPro', tracking_link = 'expressopro.in' WHERE id = 1 AND name = '';`,
     `INSERT OR IGNORE INTO branches (code, name, city) VALUES ('SURT', 'Surat Head Office', 'Surat');`,
     // The sample branch gets every template, with the consignment note as its default.
     `INSERT OR IGNORE INTO branch_templates (branch_id, template_id, is_default) SELECT b.id, t.id, t.name = ${q(consignmentNote.name)} FROM branches b, templates t WHERE b.code = 'SURT';`,

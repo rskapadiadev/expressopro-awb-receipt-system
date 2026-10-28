@@ -57,6 +57,13 @@
       "when": 1793163747355,
       "tag": "0007_receipt_numbers",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1793177674528,
+      "tag": "0008_company",
+      "breakpoints": true
     }
   ]
 }

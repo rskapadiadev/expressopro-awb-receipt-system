@@ -113,9 +113,14 @@ The app is then live at `https://expressopro-awb.<account>.workers.dev`.
     - Every franchise user belongs to one branch, always books under it, and uses that branch's templates.
     - The Super Admin assigns templates per branch (with one default) in the branch form, so new users of a branch need no template setup.
     - Admins and the Super Admin can have no branch. They then pick a branch for each receipt.
-- **Field library** (`/admin/fields`): defines each field's key, label, type, required and searchable flags, and dropdown options. A field's key can't change after creation, because saved receipts store their data by key.
+- **Field library** (`/admin/fields`): defines each field's key, label, type, required and searchable flags, and dropdown options. A field's key can't change after creation, because saved receipts store their data by key. A field can be deleted only when no template uses it; the **Used in** column shows where each one is used. Old receipts keep their own copy of the field labels, so deleting a field never changes them.
+- **Company profile** (`/admin/company`, Super Admin): company name, tracking link, phone, email, address and GSTIN.
+    - Templates print these with the automatic **Company details** element (pick which detail under **Show**), or inside static text with placeholders such as `track on:- {tracking_link}`.
+    - Each receipt keeps the profile it was booked with, so later edits never change old receipts.
 - **Templates** (`/admin/templates`): each template sets the paper size in mm and positions elements on a canvas. The fields placed on a template become its entry form.
-    - **Elements**: fields, static text, AWB number, booking date, branch, barcode (Code 128), tick mark, company logo, custom image, line and box.
+    - **Elements**: fields, static text, AWB number, receipt number, booking date, branch, company details, copy name, barcode (Code 128), tick mark, company logo, custom image, line and box.
+    - The left pane groups them as **Fields** (typed in on the booking form), **Automatic** (filled in by the system) and **Design** (printed as designed). One group is open at a time; searching shows every match. Previews show changing values in angle brackets, e.g. `<AWB number>`.
+    - **Values inside static text**: write any field or automatic value in braces, e.g. `Weight: {weight_kg} kg` or `track on:- {tracking_link}`. The **Insert a value…** menu under the text box adds them at the cursor. Fields used this way are added to the booking form automatically, and a misspelt name is printed as typed so it's easy to spot.
     - **Table cells**: any element can have borders on any side, padding and vertical alignment, so a grid-style C-Note is built from one element per cell.
     - **Text direction**: horizontal, vertical, or stacked letters (e.g. "SHIPPER COPY" down the side).
     - **Tick mark**: prints ✓, X and similar when a field has a given value. For example, ✓ next to AIR when Mode of Transport is AIR. Choose **Custom text…** to print your own text instead (e.g. `FAST`).

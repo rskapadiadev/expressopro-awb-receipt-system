@@ -1,9 +1,9 @@
 import type {
+    ComponentProps,
     InputHTMLAttributes,
     LabelHTMLAttributes,
     ReactNode,
     SelectHTMLAttributes,
-    TextareaHTMLAttributes,
 } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -13,7 +13,7 @@ const control =
 
 export { Input } from './input';
 
-export const Textarea = ({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) => (
+export const Textarea = ({ className, ...props }: ComponentProps<'textarea'>) => (
     <textarea className={cn(control, 'min-h-20 py-2', className)} {...props} />
 );
 

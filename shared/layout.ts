@@ -1,5 +1,7 @@
 import { z } from 'zod';
+import type { CompanyProfile } from './company';
 import type { FieldSnapshot } from './fields';
+import { fieldTokensIn } from './placeholders';
 import { DEFAULT_PRINT, type PrintSettings, printSettingsSchema } from './print';
 
 export const ELEMENT_KINDS = [
@@ -9,6 +11,8 @@ export const ELEMENT_KINDS = [
     'receiptNo',
     'date',
     'branch',
+    'company',
+    'copy',
     'barcode',
     'mark',
     'logo',
@@ -25,6 +29,8 @@ export const ELEMENT_LABELS: Record<ElementKind, string> = {
     receiptNo: 'Receipt number',
     date: 'Booking date',
     branch: 'Branch',
+    company: 'Company details',
+    copy: 'Copy name',
     barcode: 'Barcode',
     mark: 'Tick mark',
     logo: 'Company logo',
@@ -42,6 +48,8 @@ export const ELEMENT_SOURCE: Record<ElementKind, ElementSource> = {
     receiptNo: 'auto',
     date: 'auto',
     branch: 'auto',
+    company: 'auto',
+    copy: 'auto',
     barcode: 'auto',
     text: 'static',
     logo: 'static',
@@ -61,6 +69,8 @@ export const ELEMENT_HINTS: Record<ElementKind, string> = {
     receiptNo: "Next number in the branch's receipt sequence, assigned when booked.",
     date: 'The date the receipt is booked.',
     branch: 'The branch the receipt is booked under.',
+    copy: "The copy being printed (e.g. SHIPPER COPY), from the template's copy names.",
+    company: 'From the company profile (Company page), as it was when the receipt was booked.',
     barcode: "Code 128 barcode of the receipt's AWB number.",
     text: 'Printed exactly as typed on every receipt.',
     logo: 'The company logo.',
@@ -100,9 +110,6 @@ const hexColor = z.string().regex(/^#[0-9a-f]{6}$/i);
 
 export const DATE_FORMATS = ['DD-MM-YY', 'DD/MM/YYYY', 'DD MMM YYYY', 'DD-MM-YYYY HH:mm'] as const;
 export type DateFormat = (typeof DATE_FORMATS)[number];
-
-// Written into static text; replaced by each copy's name (e.g. SHIPPER COPY) when printing.
-export const COPY_PLACEHOLDER = '{copy}';
 
 export const layoutElementSchema = z.object({
     id: z.string().min(1).max(40),
@@ -175,6 +182,8 @@ export const BRANCH_DISPLAYS = {
 export interface LayoutSnapshot extends TemplateLayout {
     fields: FieldSnapshot[];
     branch?: BranchSnapshot;
+    // Optional because receipts booked before company profiles existed don't have one.
+    company?: CompanyProfile;
 }
 
 export const PAPER_PRESETS = [
@@ -205,15 +214,27 @@ export const PAPER_PRESETS = [
     },
 ] as const;
 
-// Fields a template collects: placed fields plus those that only drive a tick mark (e.g. AIR/SRF).
+// Fields a template collects: placed fields, those that only drive a tick mark (e.g. AIR/SRF),
+// and those written into static text as {key}.
 const INPUT_KINDS: ElementKind[] = ['field', 'mark'];
+const fieldKeysIn = (el: LayoutElement) => {
+    if (INPUT_KINDS.includes(el.kind)) {
+        return el.fieldKey ? [el.fieldKey] : [];
+    }
+    return el.kind === 'text' && el.text ? fieldTokensIn(el.text) : [];
+};
 export const fieldKeysOf = (layout: TemplateLayout) => [
-    ...new Set(
-        layout.elements.flatMap((el) =>
-            INPUT_KINDS.includes(el.kind) && el.fieldKey ? [el.fieldKey] : [],
-        ),
-    ),
+    ...new Set(layout.elements.flatMap(fieldKeysIn)),
 ];
+
+// Names of the templates that collect a field; a field in use by any of them can't be deleted.
+export const templatesUsing = (
+    templates: readonly {
+        name: string;
+        layout: TemplateLayout;
+    }[],
+    fieldKey: string,
+) => templates.filter((t) => fieldKeysOf(t.layout).includes(fieldKey)).map((t) => t.name);
 
 export const paperKey = (layout: Pick<TemplateLayout, 'widthMm' | 'heightMm'>) =>
     `${layout.widthMm}×${layout.heightMm} mm`;

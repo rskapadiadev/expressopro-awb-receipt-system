@@ -147,6 +147,11 @@ const routeTree = rootRoute.addChildren([
                 'templates.manage',
                 lazyRouteComponent(() => import('./pages/admin/TemplatesPage'), 'TemplatesPage'),
             ),
+            adminPage(
+                '/admin/company',
+                'company.manage',
+                lazyRouteComponent(() => import('./pages/admin/CompanyPage'), 'CompanyPage'),
+            ),
         ]),
         printRoute,
         designerRoute,

@@ -96,11 +96,13 @@ function receiptSql(i: number, now: number) {
         amount: 900 + i * 75,
         customer_code: `C${1000 + i}`,
         weight_kg: 0.5 + (i % 8) * 0.75,
+        no_of_box: 1 + (i % 4),
         fasttrack_service: i % 3 === 0 ? 'Yes' : 'No',
     };
     return `INSERT OR IGNORE INTO receipts (awb_number, template_id, layout_snapshot, data, status, created_by, branch_id, created_at)
 SELECT ${q(randomAwb(branch.code))}, t.id,
-    json_set(t.layout, '$.fields', ${fieldSnapshot}, '$.branch', json_object('code', b.code, 'name', b.name)),
+    json_set(t.layout, '$.fields', ${fieldSnapshot}, '$.branch', json_object('code', b.code, 'name', b.name),
+        '$.company', (SELECT json_object('name', name, 'trackingLink', tracking_link, 'phone', phone, 'email', email, 'address', address, 'gstin', gstin) FROM company WHERE id = 1)),
     ${q(JSON.stringify(data))}, 'active', u.id, b.id, ${createdAt}
 FROM templates t, branches b, users u
 WHERE t.name = ${q(consignmentNote.name)} AND b.code = ${q(branch.code)} AND u.username = ${q(branch.user)};`;

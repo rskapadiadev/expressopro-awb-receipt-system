@@ -1,4 +1,5 @@
 import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import type { CompanyProfile } from '@shared/company';
 import type { FieldDefinition } from '@shared/fields';
 import type {
     Branch,
@@ -49,6 +50,11 @@ export const templateQuery = (id: number) =>
         queryKey: ['template', id],
         queryFn: () => api<TemplateWithFields>(`/templates/${id}`),
     });
+
+export const companyQuery = queryOptions({
+    queryKey: ['company'],
+    queryFn: () => api<CompanyProfile>('/company'),
+});
 
 export const branchesQuery = queryOptions({
     queryKey: ['branches'],
@@ -101,6 +107,20 @@ export function useSave<TInput>(resource: string, invalidate: string[]) {
             ),
         onSuccess: () => {
             toast.success('Saved');
+            return Promise.all(
+                invalidate.map((key) => client.invalidateQueries({ queryKey: [key] })),
+            );
+        },
+    });
+}
+
+// Shared delete mutation, the counterpart of useSave.
+export function useRemove(resource: string, invalidate: string[]) {
+    const client = useQueryClient();
+    return useMutation({
+        mutationFn: (id: number) => api<{ id: number }>(`/${resource}/${id}`, 'DELETE'),
+        onSuccess: () => {
+            toast.success('Deleted');
             return Promise.all(
                 invalidate.map((key) => client.invalidateQueries({ queryKey: [key] })),
             );

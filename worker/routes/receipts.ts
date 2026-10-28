@@ -13,6 +13,7 @@ import type { Db } from '../db';
 import { branches, fieldDefinitions, receipts } from '../db/schema';
 import type { AppEnv } from '../env';
 import { withUniqueAwb } from '../lib/awb';
+import { getCompany } from '../lib/company';
 import { body, fail, paramId, parse } from '../lib/http';
 import { detailQuery, listQuery, receiptTotal, scopeFor, toListItem } from '../lib/receipts';
 import { type SearchPlan, searchPlan } from '../lib/search';
@@ -125,9 +126,10 @@ export const receiptRoutes = new Hono<AppEnv>()
         if (!template.isActive) {
             fail(400, 'This template is inactive');
         }
-        const [fields, branch] = await Promise.all([
+        const [fields, branch, companyProfile] = await Promise.all([
             fieldsForTemplate(db, template),
             bookingBranch(db, me.branchId ?? input.branchId),
+            getCompany(db),
         ]);
         const data = parse(buildDataSchema(fields), input.data);
         const snapshot: LayoutSnapshot = {
@@ -136,6 +138,7 @@ export const receiptRoutes = new Hono<AppEnv>()
                 code: branch.code,
                 name: branch.name,
             },
+            company: companyProfile,
             fields: fields.map(({ key, label, type }) => ({
                 key,
                 label,

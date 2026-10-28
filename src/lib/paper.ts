@@ -30,5 +30,6 @@ export const receiptContext = (
     receiptNo: receipt.receiptNo,
     createdAt: receipt.createdAt,
     branch: receipt.layout.branch,
+    company: receipt.layout.company,
     copy,
 });

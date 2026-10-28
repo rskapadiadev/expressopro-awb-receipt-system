@@ -121,3 +121,14 @@ export const receiptTotals = sqliteTable('receipt_totals', {
     userId: integer('user_id').primaryKey(),
     total: integer('total').notNull().default(0),
 });
+
+// The client's company profile; a single row (id 1) shown on receipts and frozen into each snapshot.
+export const company = sqliteTable('company', {
+    id: integer('id').primaryKey(),
+    name: text('name').notNull().default(''),
+    trackingLink: text('tracking_link').notNull().default(''),
+    phone: text('phone').notNull().default(''),
+    email: text('email').notNull().default(''),
+    address: text('address').notNull().default(''),
+    gstin: text('gstin').notNull().default(''),
+});

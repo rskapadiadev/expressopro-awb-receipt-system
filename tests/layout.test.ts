@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { consignmentNote } from '../scripts/consignment-note';
-import { fieldKeysOf, layoutElementSchema, type LayoutElement } from '../shared/layout';
+import {
+    fieldKeysOf,
+    layoutElementSchema,
+    type LayoutElement,
+    templatesUsing,
+} from '../shared/layout';
 
 const el = (id: string, kind: LayoutElement['kind'], fieldKey?: string): LayoutElement => ({
     id,
@@ -63,5 +68,33 @@ describe('seeded consignment note', () => {
         const keys = fieldKeysOf(consignmentNote.layout);
         expect(keys).toContain('fasttrack_service');
         expect(keys).toContain('weight_kg');
+        expect(keys).toContain('no_of_box');
+    });
+});
+
+describe('templatesUsing', () => {
+    it('lists templates that collect a field, including via tick marks', () => {
+        const paper = {
+            widthMm: 100,
+            heightMm: 50,
+        };
+        const templates = [
+            {
+                name: 'A',
+                layout: {
+                    ...paper,
+                    elements: [el('a', 'field', 'sender_name')],
+                },
+            },
+            {
+                name: 'B',
+                layout: {
+                    ...paper,
+                    elements: [el('b', 'mark', 'mot')],
+                },
+            },
+        ];
+        expect(templatesUsing(templates, 'mot')).toEqual(['B']);
+        expect(templatesUsing(templates, 'remarks')).toEqual([]);
     });
 });

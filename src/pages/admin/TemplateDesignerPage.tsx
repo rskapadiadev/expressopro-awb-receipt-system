@@ -155,8 +155,8 @@ function Designer({ template }: { template: Template }) {
         }));
         setSelectedId(el.id);
     };
-    const addElement = (kind: ElementKind, fieldKey?: string) => {
-        insertElement(newElement(kind, fieldKey));
+    const addElement = (kind: ElementKind, preset?: Partial<LayoutElement>) => {
+        insertElement(newElement(kind, preset));
     };
     const duplicate = (el: LayoutElement) => {
         insertElement(cloneElement(el, layout));
@@ -360,7 +360,7 @@ function Designer({ template }: { template: Template }) {
                             setCreatingField(false);
                             // A new field is placed on the canvas straight away, ready to position.
                             if (key) {
-                                addElement('field', key);
+                                addElement('field', { fieldKey: key });
                             }
                         }}
                     />

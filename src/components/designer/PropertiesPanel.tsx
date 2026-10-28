@@ -1,9 +1,9 @@
+import { COMPANY_LABELS, isCompanyProp } from '@shared/company';
 import type { FieldDefinition, FieldType } from '@shared/fields';
 import {
     BORDER_STYLES,
     type BorderStyle,
     BRANCH_DISPLAYS,
-    COPY_PLACEHOLDER,
     DATE_FORMATS,
     DEFAULT_STYLE,
     ELEMENT_HINTS,
@@ -36,6 +36,7 @@ import { Badge } from '@/components/ui/card';
 import { Checkbox, FormField, Input, Label, Select, Textarea } from '@/components/ui/form';
 import { readImage } from '@/lib/image';
 import { ColorField } from './ColorPicker';
+import { PlaceholderText } from './PlaceholderText';
 import { TEXT_KINDS, toggleBorder } from './elements';
 
 const NumberInput = ({
@@ -274,6 +275,15 @@ const SIDE_LABELS: Record<Side, string> = {
     left: 'Left',
 };
 
+const elementTitle = (el: LayoutElement, field: FieldDefinition | undefined) => {
+    if (el.kind === 'field') {
+        return field?.label ?? 'Field';
+    }
+    return el.kind === 'company' && isCompanyProp(el.text)
+        ? COMPANY_LABELS[el.text]
+        : ELEMENT_LABELS[el.kind];
+};
+
 const SOURCE_TONES = {
     form: 'blue',
     auto: 'green',
@@ -306,7 +316,7 @@ export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove 
     };
 
     return (
-        <Section title={el.kind === 'field' ? (field?.label ?? 'Field') : ELEMENT_LABELS[el.kind]}>
+        <Section title={elementTitle(el, field)}>
             <div className="space-y-1.5 rounded-md bg-muted/60 px-3 py-2">
                 <Badge tone={SOURCE_TONES[ELEMENT_SOURCE[el.kind]]} dot>
                     {SOURCE_LABELS[ELEMENT_SOURCE[el.kind]]}
@@ -343,17 +353,23 @@ export function ElementProperties({ el, fields, onChange, onDuplicate, onRemove 
                 />
             )}
             {el.kind === 'text' && (
-                <FormField
-                    label="Text"
-                    hint={`Use ${COPY_PLACEHOLDER} to print the copy name (e.g. SHIPPER COPY)`}
-                >
-                    <Textarea
-                        value={el.text ?? ''}
-                        onChange={(e) => {
-                            onChange({ text: e.target.value });
-                        }}
-                    />
-                </FormField>
+                <PlaceholderText
+                    value={el.text ?? ''}
+                    fields={fields}
+                    onChange={(text) => {
+                        onChange({ text });
+                    }}
+                />
+            )}
+            {el.kind === 'company' && (
+                <SelectField
+                    label="Show"
+                    value={isCompanyProp(el.text) ? el.text : 'name'}
+                    options={pairs(COMPANY_LABELS)}
+                    onChange={(text) => {
+                        onChange({ text });
+                    }}
+                />
             )}
             {el.kind === 'date' && (
                 <SelectField
@@ -665,7 +681,7 @@ export function CopiesPanel({ copies, onChange }: CopiesProps) {
         <Section title="Copies">
             <FormField
                 label="Copy names (one per line, max 5)"
-                hint={`Each receipt prints once per name. Put ${COPY_PLACEHOLDER} in a static text element to show it.`}
+                hint="Each receipt prints once per name. Add the Copy name element (or {copy} in static text) to show it."
             >
                 <Textarea
                     rows={3}

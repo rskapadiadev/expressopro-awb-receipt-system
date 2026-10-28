@@ -1,7 +1,15 @@
+import {
+    COMPANY_LABELS,
+    COMPANY_TOKENS,
+    COMPANY_PROPS,
+    type CompanyProfile,
+    type CompanyProp,
+    isCompanyProp,
+} from '@shared/company';
 import { type FieldSnapshot, formatFieldValue, type ReceiptData } from '@shared/fields';
+import { AUTO_TOKENS, fillTokens, isAutoToken } from '@shared/placeholders';
 import {
     type BranchSnapshot,
-    COPY_PLACEHOLDER,
     ELEMENT_LABELS,
     type LayoutElement,
     type TemplateLayout,
@@ -20,6 +28,7 @@ export interface RenderContext {
     createdAt: number;
     copy?: string;
     branch?: BranchSnapshot;
+    company?: CompanyProfile;
     // Designer/template previews show every tick mark so they can be positioned.
     preview?: boolean;
 }
@@ -45,6 +54,38 @@ const fill = 'h-full w-full object-contain';
 
 // Template previews show automatic values by name, like fields, so they don't look like static text.
 const placeholder = (el: LayoutElement) => `<${ELEMENT_LABELS[el.kind]}>`;
+
+const companyValue = (prop: CompanyProp, ctx: RenderContext) =>
+    ctx.preview ? `<${COMPANY_LABELS[prop]}>` : (ctx.company?.[prop] ?? '');
+
+// Values static text can include as {token}; previews show the value's name instead.
+function tokenValue(token: string, ctx: RenderContext): string | undefined {
+    const auto: Record<string, () => string> = {
+        copy: () => ctx.copy ?? '',
+        awb_number: () => ctx.awbNumber,
+        receipt_no: () => String(ctx.receiptNo ?? ''),
+        booking_date: () => formatReceiptDate(ctx.createdAt, 'DD-MM-YY'),
+        branch_code: () => ctx.branch?.code ?? '',
+        branch_name: () => ctx.branch?.name ?? '',
+        ...Object.fromEntries(
+            COMPANY_PROPS.map((p) => [COMPANY_TOKENS[p], () => ctx.company?.[p] ?? '']),
+        ),
+    };
+    if (isAutoToken(token)) {
+        // Copy names come from the template, so previews can show the real one.
+        return ctx.preview && token !== 'copy'
+            ? `<${AUTO_TOKENS[token] ?? token}>`
+            : auto[token]?.();
+    }
+    const field = ctx.fields[token];
+    if (!field) {
+        return undefined;
+    }
+    return ctx.preview ? `<${field.label}>` : formatFieldValue(field.type, ctx.data[token]);
+}
+
+const fillText = (text: string, ctx: RenderContext) =>
+    fillTokens(text, (token) => tokenValue(token, ctx));
 
 export function ElementContent({ el, ctx }: ElementContentProps) {
     switch (el.kind) {
@@ -72,7 +113,7 @@ export function ElementContent({ el, ctx }: ElementContentProps) {
         case 'text':
             return (
                 <div className="whitespace-pre-wrap break-words">
-                    {el.text?.replaceAll(COPY_PLACEHOLDER, ctx.copy ?? '')}
+                    {fillText(el.text ?? '', ctx)}
                 </div>
             );
         case 'awb':
@@ -99,6 +140,15 @@ export function ElementContent({ el, ctx }: ElementContentProps) {
             const show = el.text === 'name' || el.text === 'both' ? el.text : 'code';
             return <div>{display[show]}</div>;
         }
+        case 'company':
+            return (
+                <div className="whitespace-pre-wrap break-words">
+                    {companyValue(isCompanyProp(el.text) ? el.text : 'name', ctx)}
+                </div>
+            );
+        case 'copy':
+            // Copy names come from the template itself, so previews can show the real first one.
+            return <div>{ctx.copy ?? (ctx.preview ? placeholder(el) : '')}</div>;
         case 'mark':
             return <div>{isMarked(el, ctx) ? el.text || '✓' : ''}</div>;
         case 'barcode':

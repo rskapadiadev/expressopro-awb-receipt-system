@@ -7,6 +7,8 @@ const DEFAULT_SIZE: Record<ElementKind, [w: number, h: number]> = {
     receiptNo: [30, 6],
     date: [25, 6],
     branch: [30, 6],
+    company: [50, 6],
+    copy: [40, 6],
     barcode: [60, 15],
     mark: [6, 6],
     logo: [40, 14],
@@ -19,6 +21,7 @@ const DEFAULT_TEXT: Partial<Record<ElementKind, string>> = {
     text: 'Text',
     date: 'DD-MM-YY',
     branch: 'code',
+    company: 'name',
     mark: '✓',
 };
 
@@ -30,6 +33,8 @@ export const TEXT_KINDS: ElementKind[] = [
     'receiptNo',
     'date',
     'branch',
+    'company',
+    'copy',
     'mark',
 ];
 
@@ -50,7 +55,8 @@ export function reorder(elements: LayoutElement[], id: string, toFront: boolean)
 
 const newId = () => crypto.randomUUID().slice(0, 8);
 
-export function newElement(kind: ElementKind, fieldKey?: string): LayoutElement {
+// `preset` sets what the new element shows, e.g. its field or which company detail.
+export function newElement(kind: ElementKind, preset: Partial<LayoutElement> = {}): LayoutElement {
     const [w, h] = DEFAULT_SIZE[kind];
     return {
         id: newId(),
@@ -63,8 +69,8 @@ export function newElement(kind: ElementKind, fieldKey?: string): LayoutElement 
         bold: kind === 'awb',
         align: kind === 'mark' ? 'center' : 'left',
         showLabel: kind === 'field',
-        fieldKey,
         text: DEFAULT_TEXT[kind],
+        ...preset,
     };
 }
 

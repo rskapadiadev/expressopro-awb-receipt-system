@@ -40,6 +40,8 @@ function Button({
     variant = 'default',
     size = 'default',
     asChild = false,
+    // Not the browser's "submit": only buttons marked type="submit" should send a form.
+    type = 'button',
     ...props
 }: React.ComponentProps<'button'> &
     VariantProps<typeof buttonVariants> & {
@@ -52,6 +54,7 @@ function Button({
             data-slot="button"
             data-variant={variant}
             data-size={size}
+            type={asChild ? undefined : type}
             className={cn(
                 buttonVariants({
                     variant,
